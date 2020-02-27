@@ -8,3 +8,4 @@ set_directory_properties(PROPERTIES
     VS_STARTUP_PROJECT "Game")
 
 add_subdirectory(Libs)
+add_subdirectory(Source)

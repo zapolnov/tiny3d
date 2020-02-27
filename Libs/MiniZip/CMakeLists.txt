@@ -32,6 +32,6 @@ if(NOT WIN32)
     set_source_files_properties(iowin32.c PROPERTIES HEADER_FILE_ONLY TRUE)
 endif()
 
-set_target_properties(libunzip PROPERTIES OUTPUT_NAME "unzip")
+set_target_properties(libunzip PROPERTIES OUTPUT_NAME "unzip" FOLDER "libs")
 target_include_directories(libunzip BEFORE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_link_libraries(libunzip zlib libbzip2)

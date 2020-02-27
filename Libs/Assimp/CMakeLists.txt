@@ -35,6 +35,8 @@ set_source_files_properties(${code_inl_files} PROPERTIES HEADER_FILE_ONLY TRUE)
 
 add(STATIC_LIBRARY
         assimp
+    FOLDER
+        "libs"
     LINK_LIBRARIES
         libunzip
         zlib

@@ -6,7 +6,7 @@ file(GLOB source_files *.c *.h)
 source_group("Source Files" FILES ${source_files})
 
 add_library(zlib STATIC ${source_files})
-set_target_properties(zlib PROPERTIES OUTPUT_NAME "z")
+set_target_properties(zlib PROPERTIES OUTPUT_NAME "z" FOLDER "libs")
 target_include_directories(zlib BEFORE PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
 include(CheckIncludeFile)

@@ -132,13 +132,7 @@ macro(add type target)
     endif()
 
     if(NOT ARG_OUTPUT_DIRECTORY)
-        get_filename_component(BUILD_PATH "${CMAKE_BINARY_DIR}" DIRECTORY)
-        get_property(multiconfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
-        if(multiconfig)
-            set(ARG_OUTPUT_DIRECTORY "${BUILD_PATH}/Binaries")
-        else()
-            set(ARG_OUTPUT_DIRECTORY "${BUILD_PATH}/Binaries/${CMAKE_BUILD_TYPE}")
-        endif()
+        set(ARG_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
     endif()
 
     #########################################################################################################
