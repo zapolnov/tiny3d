@@ -22,9 +22,8 @@
 
     window = [[NSWindow alloc] initWithContentRect:rect styleMask:styleMask backing:NSBackingStoreBuffered defer:YES];
 
-    ViewController* controller = [[ViewController alloc] init];
-    MTKView* view = [controller createViewWithRect:rect];
-    [window setContentView:view];
+    ViewController* controller = [[ViewController alloc] initWithContentRect:rect];
+    [window setContentViewController:controller];
 
     [window makeKeyAndOrderFront:self];
 }
