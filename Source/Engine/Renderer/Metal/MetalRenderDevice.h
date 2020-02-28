@@ -13,6 +13,8 @@ public:
     std::unique_ptr<IRenderBuffer> createBuffer(size_t size) override;
     std::unique_ptr<IRenderBuffer> createBufferWithData(const void* data, size_t size) override;
 
+    std::unique_ptr<IShaderProgram> createShaderProgram(const ShaderCode* code) override;
+
     bool beginFrame() override;
     void endFrame() override;
 

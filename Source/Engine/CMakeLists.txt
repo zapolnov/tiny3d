@@ -4,6 +4,8 @@ set(src_macos
     Renderer/Metal/MetalRenderBuffer.mm
     Renderer/Metal/MetalRenderDevice.h
     Renderer/Metal/MetalRenderDevice.mm
+    Renderer/Metal/MetalShaderProgram.h
+    Renderer/Metal/MetalShaderProgram.mm
     )
 
 add(STATIC_LIBRARY
@@ -17,6 +19,8 @@ add(STATIC_LIBRARY
         Core/IGame.h
         Renderer/IRenderBuffer.h
         Renderer/IRenderDevice.h
+        Renderer/IShaderProgram.h
+        Renderer/ShaderCode.h
     )
 
 if(APPLE)

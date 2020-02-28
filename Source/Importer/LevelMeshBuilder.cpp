@@ -21,9 +21,8 @@ void LevelMeshBuilder::generateCxxCode(const std::string& levelId, std::stringst
     ss << "};\n\n";
 
     ss << "const uint16_t " << levelId << "Indices[] = {\n";
-    for (const auto& index : mIndices) {
+    for (auto index : mIndices)
         ss << "    " << index << ",\n";
-    }
     ss << "};\n";
 }
 

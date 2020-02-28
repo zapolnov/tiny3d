@@ -7,7 +7,8 @@
 #include <errno.h>
 #include <sstream>
 
-LevelProcessor::LevelProcessor()
+LevelProcessor::LevelProcessor(const ConfigFile& config)
+    : mConfig(config)
 {
     mHdr << "#pragma once\n";
     mHdr << "#include \"Game/Level.h\"\n";
@@ -21,7 +22,7 @@ LevelProcessor::~LevelProcessor()
 {
 }
 
-bool LevelProcessor::process(const ConfigFile& config, const ConfigFile::Level& level)
+bool LevelProcessor::process(const ConfigFile::Level& level)
 {
     int playerStartX = -1, playerStartY = -1;
 
@@ -117,9 +118,9 @@ bool LevelProcessor::process(const ConfigFile& config, const ConfigFile::Level& 
 
 bool LevelProcessor::generate()
 {
-    if (!writeFile("Compiled/Levels.cpp", std::move(mCxx)))
+    if (!writeTextFile("Compiled/Levels.cpp", std::move(mCxx)))
         return false;
-    if (!writeFile("Compiled/Levels.h", std::move(mHdr)))
+    if (!writeTextFile("Compiled/Levels.h", std::move(mHdr)))
         return false;
     return true;
 }

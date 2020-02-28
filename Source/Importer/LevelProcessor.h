@@ -5,14 +5,15 @@
 class LevelProcessor
 {
 public:
-    LevelProcessor();
+    explicit LevelProcessor(const ConfigFile& config);
     ~LevelProcessor();
 
-    bool process(const ConfigFile& config, const ConfigFile::Level& level);
+    bool process(const ConfigFile::Level& level);
 
     bool generate();
 
 private:
+    const ConfigFile& mConfig;
     std::stringstream mCxx;
     std::stringstream mHdr;
 };

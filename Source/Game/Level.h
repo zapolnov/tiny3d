@@ -11,6 +11,7 @@ enum
 };
 
 class Engine;
+class IShaderProgram;
 class IRenderBuffer;
 
 struct LevelVertex
@@ -43,4 +44,5 @@ private:
     glm::vec2 mPlayerPos;
     std::unique_ptr<IRenderBuffer> mVertexBuffer;
     std::unique_ptr<IRenderBuffer> mIndexBuffer;
+    std::unique_ptr<IShaderProgram> mShader;
 };
