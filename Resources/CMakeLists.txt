@@ -10,6 +10,8 @@ add(STATIC_LIBRARY
         resources
     PUBLIC_INCLUDE_DIRS
         "${CMAKE_CURRENT_SOURCE_DIR}"
+    LINK_LIBRARIES
+        glm
     SOURCES
         ${gen}
         ${levels}

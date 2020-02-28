@@ -1,6 +1,7 @@
 #import "ViewController.h"
 #import "Engine/Renderer/Metal/MetalRenderDevice.h"
 #import "Engine/Core/Engine.h"
+#import "Game/Game.h"
 
 @implementation ViewController
 
@@ -18,7 +19,7 @@
     self.view = mtkView;
 
     renderDevice = new MetalRenderDevice(mtkView);
-    engine = new Engine(renderDevice);
+    engine = new Engine(renderDevice, [](Engine* engine){ return new Game(engine); });
 
     [self mtkView:mtkView drawableSizeWillChange:mtkView.drawableSize];
 

@@ -1,4 +1,5 @@
 #import "MetalRenderDevice.h"
+#import "MetalRenderBuffer.h"
 
 MetalRenderDevice::MetalRenderDevice(MTKView* view)
     : mView(view)
@@ -9,6 +10,16 @@ MetalRenderDevice::MetalRenderDevice(MTKView* view)
 
 MetalRenderDevice::~MetalRenderDevice()
 {
+}
+
+std::unique_ptr<IRenderBuffer> MetalRenderDevice::createBuffer(size_t size)
+{
+    return std::make_unique<MetalRenderBuffer>(this, size);
+}
+
+std::unique_ptr<IRenderBuffer> MetalRenderDevice::createBufferWithData(const void* data, size_t size)
+{
+    return std::make_unique<MetalRenderBuffer>(this, data, size);
 }
 
 bool MetalRenderDevice::beginFrame()

@@ -1,9 +1,46 @@
 #pragma once
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <vector>
+#include <memory>
 
-struct Level
+enum
 {
-    static const int Width = 20;
-    static const int Height = 20;
+    LevelWidth = 20,
+    LevelHeight = 20,
+};
 
-    bool walkable[Width * Height];
+class Engine;
+class IRenderBuffer;
+
+struct LevelVertex
+{
+    glm::vec3 position;
+};
+
+struct LevelData
+{
+    bool walkable[LevelWidth * LevelHeight];
+    int playerX;
+    int playerY;
+    const LevelVertex* vertices;
+    const uint16_t* indices;
+    size_t vertexCount;
+    size_t indexCount;
+};
+
+class Level
+{
+public:
+    Level(Engine* engine, const LevelData* data);
+    ~Level();
+
+    bool isWalkable(int x, int y) const;
+
+private:
+    Engine* mEngine;
+    bool mWalkable[LevelWidth * LevelHeight];
+    glm::vec2 mPlayerPos;
+    std::unique_ptr<IRenderBuffer> mVertexBuffer;
+    std::unique_ptr<IRenderBuffer> mIndexBuffer;
 };

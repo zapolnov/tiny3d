@@ -1,6 +1,7 @@
 #include "LevelProcessor.h"
-#include "Game/Level.h"
+#include "LevelMeshBuilder.h"
 #include "Util.h"
+#include "Game/Level.h"
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
@@ -30,55 +31,63 @@ bool LevelProcessor::process(const ConfigFile& config, const ConfigFile::Level& 
         return false;
     }
 
-    mHdr << "extern const Level " << level.id << ";\n";
-    mCxx << "const Level " << level.id << " = {\n";
+    LevelMeshBuilder meshBuilder;
+
+    mHdr << "extern const LevelData " << level.id << ";\n";
+    mHdr << "extern const LevelVertex " << level.id << "Vertices[];\n";
+    mHdr << "extern const uint16_t " << level.id << "Indices[];\n";
+
+    mCxx << "const LevelData " << level.id << " = {\n";
     mCxx << "    /* .walkable = */ {\n";
 
     char line[1024];
-    int h = 0;
+    int y = 0;
     while (fgets(line, sizeof(line), f)) {
         char* p = strrchr(line, '\n');
         if (p)
             *p = 0;
 
         size_t len = strlen(line);
-        if (len != Level::Width) {
+        if (len != LevelWidth) {
             fprintf(stderr, "Error in file \"%s\": invalid line width.\n", level.file.c_str());
             fclose(f);
             return false;
         }
 
         mCxx << "        ";
-        for (int i = 0; i < Level::Width; i++) {
-            switch (line[i]) {
+        for (int x = 0; x < LevelWidth; x++) {
+            switch (line[x]) {
                 case '#':
                     mCxx << "false,";
+                    meshBuilder.createWall(x, y);
                     break;
 
                 case ' ':
                     mCxx << " true,";
+                    meshBuilder.createFloor(x, y);
                     break;
 
                 case '*':
                     mCxx << " true,";
+                    meshBuilder.createFloor(x, y);
                     if (playerStartX >= 0) {
                         fprintf(stderr, "Error in file \"%s\": multiple player start positions.\n", level.file.c_str());
                         fclose(f);
                         return false;
                     }
-                    playerStartX = i;
-                    playerStartY = h;
+                    playerStartX = x;
+                    playerStartY = y;
                     break;
 
                 default:
-                    fprintf(stderr, "Error in file \"%s\": unknown character '%c'.\n", level.file.c_str(), line[i]);
+                    fprintf(stderr, "Error in file \"%s\": unknown character '%c'.\n", level.file.c_str(), line[x]);
                     fclose(f);
                     return false;
             }
         }
 
         mCxx << std::endl;
-        ++h;
+        ++y;
     }
 
     fclose(f);
@@ -87,13 +96,22 @@ bool LevelProcessor::process(const ConfigFile& config, const ConfigFile::Level& 
         fprintf(stderr, "Error in file \"%s\": missing player start position.\n", level.file.c_str());
         return false;
     }
-    if (h != Level::Height) {
+    if (y != LevelHeight) {
         fprintf(stderr, "Error in file \"%s\": invalid height.\n", level.file.c_str());
         return false;
     }
 
     mCxx << "        },\n";
-    mCxx << "    };\n";
+    mCxx << "        /* .playerX = */ " << playerStartX << ",\n";
+    mCxx << "        /* .playerY = */ " << playerStartY << ",\n";
+    mCxx << "        /* .vertices = */ " << level.id << "Vertices,\n";
+    mCxx << "        /* .indices = */ " << level.id << "Indices,\n";
+    mCxx << "        /* .vertexCount = */ " << meshBuilder.vertexCount() << ",\n";
+    mCxx << "        /* .indexCount = */ " << meshBuilder.indexCount() << ",\n";
+    mCxx << "    };\n\n";
+
+    meshBuilder.generateCxxCode(level.id, mCxx);
+
     return true;
 }
 

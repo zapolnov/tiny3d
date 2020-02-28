@@ -8,6 +8,11 @@ public:
     explicit MetalRenderDevice(MTKView* view);
     ~MetalRenderDevice();
 
+    id<MTLDevice> nativeDevice() const { return mDevice; }
+
+    std::unique_ptr<IRenderBuffer> createBuffer(size_t size) override;
+    std::unique_ptr<IRenderBuffer> createBufferWithData(const void* data, size_t size) override;
+
     bool beginFrame() override;
     void endFrame() override;
 
