@@ -25,6 +25,10 @@ if(MSVC)
         -D_CRT_SECURE_NO_DEPRECATE=1
         -D_CRT_NONSTDC_NO_DEPRECATE=1
         )
+elseif(APPLE)
+    add_definitions(
+        -Wno-unused-private-field
+        )
 endif()
 
 get_property(multiconfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
