@@ -15,14 +15,14 @@ public:
 
     std::unique_ptr<IRenderBuffer> createBuffer(size_t size) override;
     std::unique_ptr<IRenderBuffer> createBufferWithData(const void* data, size_t size) override;
-
+    std::unique_ptr<ITexture> createTexture(const TextureData* data) override;
     std::unique_ptr<IShaderProgram> createShaderProgram(const ShaderCode* code) override;
-
     std::unique_ptr<IPipelineState> createPipelineState(const std::unique_ptr<IShaderProgram>& shader, const VertexFormat& vertexFormat) override;
 
     void setProjectionMatrix(const glm::mat4& matrix) override;
     void setViewMatrix(const glm::mat4& matrix) override;
 
+    void setTexture(int index, const std::unique_ptr<ITexture>& texture) override;
     void setPipelineState(const std::unique_ptr<IPipelineState>& state) override;
     void setVertexBuffer(const std::unique_ptr<IRenderBuffer>& state, unsigned offset) override;
 

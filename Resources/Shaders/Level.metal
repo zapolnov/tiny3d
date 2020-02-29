@@ -8,12 +8,13 @@ using namespace metal;
 struct VertexInput
 {
     float3 position [[attribute(0)]];
+    float2 texCoord [[attribute(1)]];
 };
 
 struct FragmentInput
 {
     float4 position [[position]];
-    float4 color;
+    float2 texCoord;
 };
 
 vertex FragmentInput vertexShader(
@@ -25,14 +26,16 @@ vertex FragmentInput vertexShader(
 
     FragmentInput out;
     out.position = viewProjectionMatrix * float4(in.position, 1.0);
-    out.color = vector_float4(1.0, 0.0, 0.0, 1.0);
+    out.texCoord = in.texCoord;
 
     return out;
 }
 
 fragment float4 fragmentShader(
-    FragmentInput in [[stage_in]]
+    FragmentInput in [[stage_in]],
+    texture2d<float> texture [[texture(0)]]
     )
 {
-    return in.color;
+    constexpr sampler textureSampler(mag_filter::linear, min_filter::linear);
+    return texture.sample(textureSampler, in.texCoord);
 }

@@ -14,16 +14,19 @@ enum
 class Engine;
 class IShaderProgram;
 class IPipelineState;
+class ITexture;
 class IRenderBuffer;
 
 struct LevelVertex
 {
     glm::vec3 position;
+    glm::vec2 texCoord;
 
     static VertexFormat format()
     {
         VertexFormat fmt;
         fmt.addAttribute(VertexType::Float3);
+        fmt.addAttribute(VertexType::Float2);
         return fmt;
     }
 };
@@ -56,6 +59,7 @@ private:
     std::unique_ptr<IRenderBuffer> mVertexBuffer;
     std::unique_ptr<IRenderBuffer> mIndexBuffer;
     std::unique_ptr<IPipelineState> mPipelineState;
+    std::unique_ptr<ITexture> mTilesetTexture;
     std::unique_ptr<IShaderProgram> mShader;
     size_t mIndexCount;
 };

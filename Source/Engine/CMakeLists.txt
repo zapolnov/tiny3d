@@ -8,6 +8,8 @@ set(src_macos
     Renderer/Metal/MetalRenderDevice.mm
     Renderer/Metal/MetalShaderProgram.h
     Renderer/Metal/MetalShaderProgram.mm
+    Renderer/Metal/MetalTexture.h
+    Renderer/Metal/MetalTexture.mm
     )
 
 add(STATIC_LIBRARY
@@ -27,6 +29,7 @@ add(STATIC_LIBRARY
         Renderer/IRenderBuffer.h
         Renderer/IRenderDevice.h
         Renderer/IShaderProgram.h
+        Renderer/ITexture.h
         Renderer/ShaderCode.h
         Renderer/VertexFormat.h
     )

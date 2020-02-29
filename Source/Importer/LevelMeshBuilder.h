@@ -22,5 +22,5 @@ private:
     std::vector<uint16_t> mIndices;
 
     void createSquareIndices();
-    void createHorizontalSquare(float x, float y, float z);
+    void createHorizontalSquare(float x, float y, float z, int tileX, int tileY);
 };

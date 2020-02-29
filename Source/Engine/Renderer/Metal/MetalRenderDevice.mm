@@ -1,8 +1,10 @@
 #import "MetalRenderDevice.h"
 #import "MetalRenderBuffer.h"
 #import "MetalPipelineState.h"
+#import "MetalTexture.h"
 #import "MetalShaderProgram.h"
 #import "Engine/Renderer/VertexFormat.h"
+#import "Engine/Renderer/TextureData.h"
 #import "Engine/Renderer/ShaderCode.h"
 #import <cassert>
 
@@ -37,6 +39,21 @@ std::unique_ptr<IRenderBuffer> MetalRenderDevice::createBufferWithData(const voi
     return std::make_unique<MetalRenderBuffer>(this, data, size);
 }
 
+std::unique_ptr<ITexture> MetalRenderDevice::createTexture(const TextureData* data)
+{
+    MTLTextureDescriptor* desc = [[MTLTextureDescriptor alloc] init];
+    desc.pixelFormat = MTLPixelFormatRGBA8Unorm;
+    desc.width = data->width;
+    desc.height = data->height;
+
+    id<MTLTexture> texture = [mDevice newTextureWithDescriptor:desc];
+
+    MTLRegion region = { { 0, 0, 0 }, { data->width, data->height, 1 } };
+    [texture replaceRegion:region mipmapLevel:0 withBytes:data->pixels bytesPerRow:(data->width * 4)];
+
+    return std::make_unique<MetalTexture>(this, texture);
+}
+
 std::unique_ptr<IShaderProgram> MetalRenderDevice::createShaderProgram(const ShaderCode* code)
 {
     dispatch_data_t data = dispatch_data_create(code->metal, code->metalSize,
@@ -62,7 +79,7 @@ std::unique_ptr<IPipelineState> MetalRenderDevice::createPipelineState(const std
             case VertexType::Float2: vertexDesc.attributes[i].format = MTLVertexFormatFloat2; break;
             case VertexType::Float3: vertexDesc.attributes[i].format = MTLVertexFormatFloat3; break;
         }
-        vertexDesc.attributes[i].bufferIndex = 0;
+        vertexDesc.attributes[i].bufferIndex = VertexInputIndex_Vertices;
         vertexDesc.attributes[i].offset = attr.offset;
         ++i;
     }
@@ -92,6 +109,14 @@ void MetalRenderDevice::setProjectionMatrix(const glm::mat4& matrix)
 void MetalRenderDevice::setViewMatrix(const glm::mat4& matrix)
 {
     memcpy(&mCameraUniforms.viewMatrix, &matrix[0][0], 16 * sizeof(float));
+}
+
+void MetalRenderDevice::setTexture(int index, const std::unique_ptr<ITexture>& texture)
+{
+    assert(dynamic_cast<MetalTexture*>(texture.get()) != nullptr);
+    auto metalTexture = static_cast<MetalTexture*>(texture.get());
+
+    [mCommandEncoder setFragmentTexture:metalTexture->nativeTexture() atIndex:index];
 }
 
 void MetalRenderDevice::setPipelineState(const std::unique_ptr<IPipelineState>& state)

@@ -19,7 +19,7 @@ TextureProcessor::~TextureProcessor()
 bool TextureProcessor::process(const ConfigFile::Texture& texture)
 {
     int w, h, n;
-    unsigned char* data = stbi_load(texture.file.c_str(), &w, &h, &n, 3);
+    unsigned char* data = stbi_load(texture.file.c_str(), &w, &h, &n, 4);
     if (!data) {
         fprintf(stderr, "Unable to load texture \"%s\".", texture.file.c_str());
         return false;
@@ -29,8 +29,12 @@ bool TextureProcessor::process(const ConfigFile::Texture& texture)
 
     mCxx << "\nstatic const unsigned char " << texture.id << "_pixels[] = {\n";
     for (int y = 0; y < h; y++) {
-        for (int x = 0; x < w; x++)
-            mCxx << "    " << unsigned(data[y * w + x]) << ",\n";
+        for (int x = 0; x < w; x++) {
+            mCxx << "    ";
+            for (int i = 0; i < 4; i++)
+                mCxx << unsigned(data[(y * w + x) * 4 + i]) << ',';
+            mCxx << std::endl;
+        }
     }
     mCxx << "};\n\n";
     mCxx << "const TextureData " << texture.id << " = {\n";

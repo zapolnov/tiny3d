@@ -4,8 +4,10 @@
 #include <memory>
 
 struct ShaderCode;
+struct TextureData;
 class VertexFormat;
 class IRenderBuffer;
+class ITexture;
 class IPipelineState;
 class IShaderProgram;
 
@@ -23,14 +25,14 @@ public:
 
     virtual std::unique_ptr<IRenderBuffer> createBuffer(size_t size) = 0;
     virtual std::unique_ptr<IRenderBuffer> createBufferWithData(const void* data, size_t size) = 0;
-
+    virtual std::unique_ptr<ITexture> createTexture(const TextureData* data) = 0;
     virtual std::unique_ptr<IShaderProgram> createShaderProgram(const ShaderCode* code) = 0;
-
     virtual std::unique_ptr<IPipelineState> createPipelineState(const std::unique_ptr<IShaderProgram>& shader, const VertexFormat& vertexFormat) = 0;
 
     virtual void setProjectionMatrix(const glm::mat4& matrix) = 0;
     virtual void setViewMatrix(const glm::mat4& matrix) = 0;
 
+    virtual void setTexture(int index, const std::unique_ptr<ITexture>& texture) = 0;
     virtual void setPipelineState(const std::unique_ptr<IPipelineState>& state) = 0;
     virtual void setVertexBuffer(const std::unique_ptr<IRenderBuffer>& buffer, unsigned offset = 0) = 0;
 
