@@ -1,5 +1,13 @@
 <assets>
+
     <level id="level1" file="Levels/level1.txt" />
+
+    <shader id="defaultShader" file="Shaders/Default.metal" />
     <shader id="levelShader" file="Shaders/Level.metal" />
+
     <texture id="dungeonTileset" file="Textures/dungeon.png" />
+
+    <mesh id="jarMesh" file="Meshes/CutePropModels/jar.obj">
+    </mesh>
+
 </assets>

@@ -27,7 +27,7 @@ bool TextureProcessor::process(const ConfigFile::Texture& texture)
 
     mHdr << "extern const TextureData " << texture.id << ";\n";
 
-    mCxx << "\nstatic const unsigned char " << texture.id << "_pixels[] = {\n";
+    mCxx << "\nstatic const unsigned char " << texture.id << "Pixels[] = {\n";
     for (int y = 0; y < h; y++) {
         for (int x = 0; x < w; x++) {
             mCxx << "    ";
@@ -38,7 +38,7 @@ bool TextureProcessor::process(const ConfigFile::Texture& texture)
     }
     mCxx << "};\n\n";
     mCxx << "const TextureData " << texture.id << " = {\n";
-    mCxx << "    /* .pixels = */ " << texture.id <<  "_pixels,\n";
+    mCxx << "    /* .pixels = */ " << texture.id <<  "Pixels,\n";
     mCxx << "    /* .width = */ " << w << ",\n";
     mCxx << "    /* .height = */ " << h << ",\n";
     mCxx << "};\n";

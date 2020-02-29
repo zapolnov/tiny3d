@@ -17,6 +17,12 @@ public:
         std::string file;
     };
 
+    struct Mesh
+    {
+        std::string id;
+        std::string file;
+    };
+
     struct Shader
     {
         std::string id;
@@ -28,6 +34,7 @@ public:
 
     const std::vector<Level>& levels() const { return mLevels; }
     const std::vector<Texture>& textures() const { return mTextures; }
+    const std::vector<Mesh>& meshes() const { return mMeshes; }
     const std::vector<Shader>& shaders() const { return mShaders; }
 
     bool load(const std::string& file);
@@ -35,5 +42,6 @@ public:
 private:
     std::vector<Level> mLevels;
     std::vector<Texture> mTextures;
+    std::vector<Mesh> mMeshes;
     std::vector<Shader> mShaders;
 };

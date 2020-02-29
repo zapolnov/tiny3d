@@ -5,6 +5,7 @@ add(EXECUTABLE
     LINK_LIBRARIES
         tinyxml
         stb_image
+        assimp
         engine
     SOURCES
         ConfigFile.cpp
@@ -13,6 +14,8 @@ add(EXECUTABLE
         LevelMeshBuilder.h
         LevelProcessor.cpp
         LevelProcessor.h
+        MeshProcessor.cpp
+        MeshProcessor.h
         ShaderProcessor.cpp
         ShaderProcessor.h
         TextureProcessor.cpp
