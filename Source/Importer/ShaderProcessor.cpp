@@ -58,21 +58,21 @@ bool ShaderProcessor::compileMetalShader(const ConfigFile::Shader& shader)
     // FIXME: code below needs better escaping
 
     std::stringstream ss;
-    ss << "xcrun -sdk macosx metal \"" << shader.file << "\" -c -o \"Temp/" << shader.id << ".air\"";
+    ss << "xcrun -sdk macosx metal \"" << shader.file << "\" -c -o \".Temp/" << shader.id << ".air\"";
     if (system(ss.str().c_str()) != 0) {
         fprintf(stderr, "Error compiling shader \"%s\".\n", shader.file.c_str());
         return false;
     }
 
     ss.str({});
-    ss << "xcrun -sdk macosx metallib \"Temp/" << shader.id << ".air\" -o \"Temp/" << shader.id << ".metallib\"";
+    ss << "xcrun -sdk macosx metallib \".Temp/" << shader.id << ".air\" -o \".Temp/" << shader.id << ".metallib\"";
     if (system(ss.str().c_str()) != 0) {
         fprintf(stderr, "Error creating library for shader \"%s\".\n", shader.file.c_str());
         return false;
     }
 
     std::stringstream data;
-    if (!loadBinaryFile("Temp/" + shader.id + ".metallib", data))
+    if (!loadBinaryFile(".Temp/" + shader.id + ".metallib", data))
         return false;
 
     std::string bytes = data.str();

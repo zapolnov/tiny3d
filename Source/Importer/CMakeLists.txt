@@ -4,6 +4,7 @@ add(EXECUTABLE
     CONSOLE
     LINK_LIBRARIES
         tinyxml
+        stb_image
         engine
     SOURCES
         ConfigFile.cpp
@@ -14,6 +15,8 @@ add(EXECUTABLE
         LevelProcessor.h
         ShaderProcessor.cpp
         ShaderProcessor.h
+        TextureProcessor.cpp
+        TextureProcessor.h
         Util.cpp
         Util.h
         main.cpp

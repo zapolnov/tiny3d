@@ -1,4 +1,5 @@
 <assets>
     <level id="level1" file="Levels/level1.txt" />
     <shader id="levelShader" file="Shaders/Level.metal" />
+    <texture id="dungeonTileset" file="Textures/dungeon.png" />
 </assets>

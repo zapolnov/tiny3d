@@ -36,6 +36,21 @@ bool ConfigFile::load(const std::string& file)
         levels.emplace_back(std::move(level));
     }
 
+    std::vector<Texture> textures;
+    for (const TiXmlElement* e = root->FirstChildElement("texture"); e; e = e->NextSiblingElement("texture")) {
+        const char* id = e->Attribute("id");
+        const char* file = e->Attribute("file");
+        if (!id || !file) {
+            fprintf(stderr, "Unable to parse config file: missing mandatory attribute in element \"texture\".\n");
+            return false;
+        }
+
+        Texture texture;
+        texture.id = id;
+        texture.file = file;
+        textures.emplace_back(std::move(texture));
+    }
+
     std::vector<Shader> shaders;
     for (const TiXmlElement* e = root->FirstChildElement("shader"); e; e = e->NextSiblingElement("shader")) {
         const char* id = e->Attribute("id");
@@ -52,6 +67,7 @@ bool ConfigFile::load(const std::string& file)
     }
 
     mLevels = std::move(levels);
+    mTextures = std::move(textures);
     mShaders = std::move(shaders);
 
     return true;

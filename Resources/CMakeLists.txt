@@ -1,5 +1,6 @@
 
 file(GLOB_RECURSE levels RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" CONFIGURE_DEPENDS Levels/*)
+file(GLOB_RECURSE textures RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" CONFIGURE_DEPENDS Textures/*)
 file(GLOB_RECURSE shaders RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" CONFIGURE_DEPENDS Shaders/*)
 
 set(gen
@@ -9,6 +10,8 @@ set(gen
     Compiled/Shaders.h
     Compiled/Shaders_Metal.cpp
     Compiled/Shaders_Metal.h
+    Compiled/Textures.cpp
+    Compiled/Textures.h
     )
 
 add(STATIC_LIBRARY
@@ -20,6 +23,7 @@ add(STATIC_LIBRARY
     SOURCES
         ${gen}
         ${levels}
+        ${textures}
         ${shaders}
         assets.xml
     )
@@ -39,10 +43,10 @@ endforeach()
 add_custom_command(OUTPUT "${output}"
         BYPRODUCTS ${byproducts}
         COMMAND cmake -E make_directory "${CMAKE_CURRENT_SOURCE_DIR}/Compiled"
-        COMMAND cmake -E make_directory "${CMAKE_CURRENT_SOURCE_DIR}/Temp"
+        COMMAND cmake -E make_directory "${CMAKE_CURRENT_SOURCE_DIR}/.Temp"
         COMMAND importer
         MAIN_DEPENDENCY assets.xml
-        DEPENDS ${levels} ${shaders} assets.xml importer
+        DEPENDS ${levels} ${shaders} ${textures} assets.xml importer
         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
         COMMENT "Compiling assets"
     )

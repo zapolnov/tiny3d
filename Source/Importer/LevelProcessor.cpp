@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include <sstream>
 
 LevelProcessor::LevelProcessor(const ConfigFile& config)
     : mConfig(config)
