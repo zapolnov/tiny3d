@@ -19,6 +19,10 @@ add(STATIC_LIBRARY
         Core/Engine.cpp
         Core/Engine.h
         Core/IGame.h
+        Math/Camera.cpp
+        Math/Camera.h
+        Math/PerspectiveCamera.cpp
+        Math/PerspectiveCamera.h
         Renderer/IPipelineState.h
         Renderer/IRenderBuffer.h
         Renderer/IRenderDevice.h
