@@ -15,6 +15,11 @@ MetalRenderDevice::MetalRenderDevice(MTKView* view)
     mDevice = view.device;
     mCommandQueue = [mDevice newCommandQueue];
 
+    MTLDepthStencilDescriptor* depthDesc = [MTLDepthStencilDescriptor new];
+    depthDesc.depthCompareFunction = MTLCompareFunctionLessEqual;
+    depthDesc.depthWriteEnabled = YES;
+    mDepthStencilState = [mDevice newDepthStencilStateWithDescriptor:depthDesc];
+
     const glm::mat4 identity = glm::mat4(1.0f);
     memcpy(&mCameraUniforms.projectionMatrix, &identity[0][0], 16 * sizeof(float));
     memcpy(&mCameraUniforms.viewMatrix, &identity[0][0], 16 * sizeof(float));
@@ -178,6 +183,7 @@ bool MetalRenderDevice::beginFrame()
     mCommandEncoder = [mCommandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
 
     [mCommandEncoder setViewport:mViewport];
+    [mCommandEncoder setDepthStencilState:mDepthStencilState];
 
     return true;
 }

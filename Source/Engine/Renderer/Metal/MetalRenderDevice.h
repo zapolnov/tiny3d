@@ -39,6 +39,7 @@ private:
     id<MTLDevice> mDevice;
     id<MTLCommandQueue> mCommandQueue;
     id<MTLCommandBuffer> mCommandBuffer;
+    id<MTLDepthStencilState> mDepthStencilState;
     id<MTLRenderCommandEncoder> mCommandEncoder;
     CameraUniforms mCameraUniforms;
     MTLViewport mViewport;
