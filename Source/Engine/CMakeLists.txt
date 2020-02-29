@@ -1,5 +1,7 @@
 
 set(src_macos
+    Renderer/Metal/MetalPipelineState.h
+    Renderer/Metal/MetalPipelineState.mm
     Renderer/Metal/MetalRenderBuffer.h
     Renderer/Metal/MetalRenderBuffer.mm
     Renderer/Metal/MetalRenderDevice.h
@@ -17,6 +19,7 @@ add(STATIC_LIBRARY
         Core/Engine.cpp
         Core/Engine.h
         Core/IGame.h
+        Renderer/IPipelineState.h
         Renderer/IRenderBuffer.h
         Renderer/IRenderDevice.h
         Renderer/IShaderProgram.h

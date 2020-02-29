@@ -11,6 +11,8 @@ public:
     explicit Game(Engine* engine);
     ~Game();
 
+    void render();
+
 private:
     Engine* mEngine;
     std::unique_ptr<Level> mLevel;

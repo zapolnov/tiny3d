@@ -12,6 +12,7 @@ enum
 
 class Engine;
 class IShaderProgram;
+class IPipelineState;
 class IRenderBuffer;
 
 struct LevelVertex
@@ -38,11 +39,15 @@ public:
 
     bool isWalkable(int x, int y) const;
 
+    void render() const;
+
 private:
     Engine* mEngine;
     bool mWalkable[LevelWidth * LevelHeight];
     glm::vec2 mPlayerPos;
     std::unique_ptr<IRenderBuffer> mVertexBuffer;
     std::unique_ptr<IRenderBuffer> mIndexBuffer;
+    std::unique_ptr<IPipelineState> mPipelineState;
     std::unique_ptr<IShaderProgram> mShader;
+    size_t mIndexCount;
 };

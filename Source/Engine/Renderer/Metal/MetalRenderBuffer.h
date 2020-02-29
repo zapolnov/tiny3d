@@ -11,6 +11,8 @@ public:
     MetalRenderBuffer(MetalRenderDevice* device, const void* data, size_t size);
     ~MetalRenderBuffer();
 
+    id<MTLBuffer> nativeBuffer() const { return mBuffer; }
+
 private:
     MetalRenderDevice* mDevice;
     id<MTLBuffer> mBuffer;

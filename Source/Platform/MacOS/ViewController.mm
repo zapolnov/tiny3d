@@ -39,6 +39,7 @@
 
 -(void)mtkView:(MTKView*)view drawableSizeWillChange:(CGSize)size
 {
+    renderDevice->onDrawableSizeChanged(size.width, size.height);
 }
 
 @end

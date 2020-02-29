@@ -9,6 +9,7 @@ set_directory_properties(PROPERTIES
 
 include_directories(
         "${CMAKE_CURRENT_SOURCE_DIR}/Source"
+        "${CMAKE_CURRENT_SOURCE_DIR}/Resources"
     )
 
 add_subdirectory(Libs)

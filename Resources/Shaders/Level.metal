@@ -13,22 +13,23 @@ struct RasterizerData
 
 vertex RasterizerData vertexShader(
     uint vertexID [[vertex_id]],
-    constant Vertex* vertices [[buffer(VertexInputIndex_Vertices)]],
-    constant vector_uint2* viewportSizePointer [[buffer(VertexInputIndex_ViewportSize)]]
+    constant CameraUniforms& cameraUniforms [[buffer(VertexInputIndex_CameraUniforms)]],
+    constant Vertex* vertices [[buffer(VertexInputIndex_Vertices)]]
     )
 {
-    float2 pixelSpacePosition = vertices[vertexID].position.xy;
-    vector_float2 viewportSize = vector_float2(*viewportSizePointer);
+    float4 inPosition = float4(vertices[vertexID].position, 1.0);
+    float4x4 viewProjectionMatrix = cameraUniforms.projectionMatrix * cameraUniforms.viewMatrix;
 
     RasterizerData out;
-    out.position = vector_float4(0.0, 0.0, 0.0, 1.0);
-    out.position.xy = pixelSpacePosition / (viewportSize / 2.0);
+    out.position = viewProjectionMatrix * inPosition;
     out.color = vector_float4(1.0, 0.0, 0.0, 1.0);
 
     return out;
 }
 
-fragment float4 fragmentShader(RasterizerData in [[stage_in]])
+fragment float4 fragmentShader(
+    RasterizerData in [[stage_in]]
+    )
 {
     return in.color;
 }

@@ -15,6 +15,7 @@ Engine::~Engine()
 void Engine::doOneFrame()
 {
     if (mRenderDevice->beginFrame()) {
+        mGame->render();
         mRenderDevice->endFrame();
     }
 }

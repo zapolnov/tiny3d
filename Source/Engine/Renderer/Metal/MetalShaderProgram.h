@@ -10,6 +10,9 @@ public:
     MetalShaderProgram(MetalRenderDevice* device, id<MTLLibrary> library);
     ~MetalShaderProgram();
 
+    id<MTLFunction> vertexFunction() const { return mVertexFunction; }
+    id<MTLFunction> fragmentFunction() const { return mFragmentFunction; }
+
 private:
     MetalRenderDevice* mDevice;
     id<MTLLibrary> mLibrary;

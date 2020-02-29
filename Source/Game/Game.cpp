@@ -10,3 +10,8 @@ Game::Game(Engine* engine)
 Game::~Game()
 {
 }
+
+void Game::render()
+{
+    mLevel->render();
+}

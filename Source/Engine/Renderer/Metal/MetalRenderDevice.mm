@@ -1,13 +1,20 @@
 #import "MetalRenderDevice.h"
 #import "MetalRenderBuffer.h"
+#import "MetalPipelineState.h"
 #import "MetalShaderProgram.h"
 #import "Engine/Renderer/ShaderCode.h"
+#import <cassert>
 
 MetalRenderDevice::MetalRenderDevice(MTKView* view)
     : mView(view)
+    , mViewport{0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f}
 {
     mDevice = view.device;
     mCommandQueue = [mDevice newCommandQueue];
+
+    const glm::mat4 identity = glm::mat4(1.0f);
+    memcpy(&mCameraUniforms.projectionMatrix, &identity[0][0], 16 * sizeof(float));
+    memcpy(&mCameraUniforms.viewMatrix, &identity[0][0], 16 * sizeof(float));
 }
 
 MetalRenderDevice::~MetalRenderDevice()
@@ -37,6 +44,85 @@ std::unique_ptr<IShaderProgram> MetalRenderDevice::createShaderProgram(const Sha
     return std::make_unique<MetalShaderProgram>(this, library);
 }
 
+std::unique_ptr<IPipelineState> MetalRenderDevice::createPipelineState(const std::unique_ptr<IShaderProgram>& shader)
+{
+    assert(dynamic_cast<MetalShaderProgram*>(shader.get()) != nullptr);
+    auto metalShader = static_cast<MetalShaderProgram*>(shader.get());
+
+    MTLRenderPipelineDescriptor* desc = [[MTLRenderPipelineDescriptor alloc] init];
+    desc.vertexFunction = metalShader->vertexFunction();
+    desc.fragmentFunction = metalShader->fragmentFunction();
+    desc.depthAttachmentPixelFormat = MTLPixelFormatDepth24Unorm_Stencil8;
+    desc.stencilAttachmentPixelFormat = MTLPixelFormatDepth24Unorm_Stencil8;
+    desc.colorAttachments[0].pixelFormat = mView.colorPixelFormat;
+
+    NSError* error = nil;
+    id<MTLRenderPipelineState> state = [mDevice newRenderPipelineStateWithDescriptor:desc error:&error];
+    if (error != nil)
+        NSLog(@"Unable to create pipeline state: %@", error);
+
+    return std::make_unique<MetalPipelineState>(this, state);
+}
+
+void MetalRenderDevice::setProjectionMatrix(const glm::mat4& matrix)
+{
+    memcpy(&mCameraUniforms.projectionMatrix, &matrix[0][0], 16 * sizeof(float));
+}
+
+void MetalRenderDevice::setViewMatrix(const glm::mat4& matrix)
+{
+    memcpy(&mCameraUniforms.viewMatrix, &matrix[0][0], 16 * sizeof(float));
+}
+
+void MetalRenderDevice::setPipelineState(const std::unique_ptr<IPipelineState>& state)
+{
+    assert(dynamic_cast<MetalPipelineState*>(state.get()) != nullptr);
+    auto metalState = static_cast<MetalPipelineState*>(state.get());
+
+    [mCommandEncoder setRenderPipelineState:metalState->nativeState()];
+}
+
+void MetalRenderDevice::setVertexBuffer(const std::unique_ptr<IRenderBuffer>& buffer, unsigned offset)
+{
+    assert(dynamic_cast<MetalRenderBuffer*>(buffer.get()) != nullptr);
+    auto metalBuffer = static_cast<MetalRenderBuffer*>(buffer.get());
+
+    [mCommandEncoder setVertexBuffer:metalBuffer->nativeBuffer() offset:offset atIndex:VertexInputIndex_Vertices];
+}
+
+static MTLPrimitiveType convertPrimitiveType(PrimitiveType type)
+{
+    switch (type) {
+        case Triangles: return MTLPrimitiveTypeTriangle;
+    }
+
+    assert(false);
+    return MTLPrimitiveTypeTriangle;
+}
+
+void MetalRenderDevice::drawPrimitive(PrimitiveType type, unsigned start, unsigned count)
+{
+    bindUniforms();
+    [mCommandEncoder drawPrimitives:convertPrimitiveType(type) vertexStart:start vertexCount:count];
+}
+
+void MetalRenderDevice::drawIndexedPrimitive(PrimitiveType type, const std::unique_ptr<IRenderBuffer>& indexBuffer, unsigned start, unsigned count)
+{
+    assert(dynamic_cast<MetalRenderBuffer*>(indexBuffer.get()) != nullptr);
+    auto metalBuffer = static_cast<MetalRenderBuffer*>(indexBuffer.get());
+
+    bindUniforms();
+    [mCommandEncoder drawIndexedPrimitives:convertPrimitiveType(type) indexCount:count
+        indexType:MTLIndexTypeUInt16 indexBuffer:metalBuffer->nativeBuffer() indexBufferOffset:start
+        instanceCount:1 baseVertex:0 baseInstance:0];
+}
+
+void MetalRenderDevice::onDrawableSizeChanged(float width, float height)
+{
+    mViewport.width = width;
+    mViewport.height = height;
+}
+
 bool MetalRenderDevice::beginFrame()
 {
     MTLRenderPassDescriptor* renderPassDescriptor = mView.currentRenderPassDescriptor;
@@ -45,6 +131,8 @@ bool MetalRenderDevice::beginFrame()
 
     mCommandBuffer = [mCommandQueue commandBuffer];
     mCommandEncoder = [mCommandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
+
+    [mCommandEncoder setViewport:mViewport];
 
     return true;
 }
@@ -57,4 +145,10 @@ void MetalRenderDevice::endFrame()
 
     mCommandBuffer = nil;
     mCommandEncoder = nil;
+}
+
+void MetalRenderDevice::bindUniforms()
+{
+    [mCommandEncoder setVertexBytes:&mCameraUniforms
+        length:sizeof(mCameraUniforms) atIndex:VertexInputIndex_CameraUniforms];
 }
