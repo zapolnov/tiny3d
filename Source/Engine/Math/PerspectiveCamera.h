@@ -17,6 +17,7 @@ public:
 
     void setFov(float fov);
     void setAspect(float aspect);
+    void setSize(const glm::vec2& size) { setSize(size.x, size.y); }
     void setSize(float width, float height) override;
     void setNearZ(float nearZ);
     void setFarZ(float farZ);

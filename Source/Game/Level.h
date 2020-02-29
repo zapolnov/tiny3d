@@ -1,4 +1,5 @@
 #pragma once
+#include "Engine/Renderer/VertexFormat.h"
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <vector>
@@ -18,6 +19,13 @@ class IRenderBuffer;
 struct LevelVertex
 {
     glm::vec3 position;
+
+    static VertexFormat format()
+    {
+        VertexFormat fmt;
+        fmt.addAttribute(VertexType::Float3);
+        return fmt;
+    }
 };
 
 struct LevelData

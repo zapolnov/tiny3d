@@ -18,7 +18,7 @@ Level::Level(Engine* engine, const LevelData* data)
     mShader = mEngine->renderDevice()->createShaderProgram(&levelShader);
     mVertexBuffer = mEngine->renderDevice()->createBufferWithData(data->vertices, data->vertexCount * sizeof(LevelVertex));
     mIndexBuffer = mEngine->renderDevice()->createBufferWithData(data->indices, data->indexCount * sizeof(uint16_t));
-    mPipelineState = mEngine->renderDevice()->createPipelineState(mShader);
+    mPipelineState = mEngine->renderDevice()->createPipelineState(mShader, LevelVertex::format());
 }
 
 Level::~Level()

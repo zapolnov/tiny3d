@@ -28,6 +28,7 @@ add(STATIC_LIBRARY
         Renderer/IRenderDevice.h
         Renderer/IShaderProgram.h
         Renderer/ShaderCode.h
+        Renderer/VertexFormat.h
     )
 
 if(APPLE)

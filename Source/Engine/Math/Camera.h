@@ -8,6 +8,7 @@ public:
     Camera();
     virtual ~Camera() = default;
 
+    void setSize(const glm::vec2& size) { setSize(size.x, size.y); }
     virtual void setSize(float width, float height) = 0;
 
     const glm::mat4& projectionMatrix();

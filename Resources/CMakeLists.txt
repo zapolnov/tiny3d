@@ -42,7 +42,7 @@ add_custom_command(OUTPUT "${output}"
         COMMAND cmake -E make_directory "${CMAKE_CURRENT_SOURCE_DIR}/Temp"
         COMMAND importer
         MAIN_DEPENDENCY assets.xml
-        DEPENDS ${levels} assets.xml importer
+        DEPENDS ${levels} ${shaders} assets.xml importer
         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
         COMMENT "Compiling assets"
     )

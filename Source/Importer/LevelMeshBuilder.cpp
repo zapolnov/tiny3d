@@ -28,11 +28,13 @@ void LevelMeshBuilder::generateCxxCode(const std::string& levelId, std::stringst
 
 void LevelMeshBuilder::createFloor(float x, float y)
 {
+    y = LevelHeight - y - 1;
     createHorizontalSquare(x, y, 0.0f);
 }
 
 void LevelMeshBuilder::createWall(float x, float y)
 {
+    y = LevelHeight - y - 1;
     float x1 = x, y1 = y, x2 = x + 1.0f, y2 = y + 1.0f, z1 = 0.0f, z2 = 1.0f;
 
     createHorizontalSquare(x, y, 1.0f);

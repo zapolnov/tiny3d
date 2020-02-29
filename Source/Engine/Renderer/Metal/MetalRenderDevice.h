@@ -11,12 +11,14 @@ public:
 
     id<MTLDevice> nativeDevice() const { return mDevice; }
 
+    glm::vec2 viewportSize() const override;
+
     std::unique_ptr<IRenderBuffer> createBuffer(size_t size) override;
     std::unique_ptr<IRenderBuffer> createBufferWithData(const void* data, size_t size) override;
 
     std::unique_ptr<IShaderProgram> createShaderProgram(const ShaderCode* code) override;
 
-    std::unique_ptr<IPipelineState> createPipelineState(const std::unique_ptr<IShaderProgram>& shader) override;
+    std::unique_ptr<IPipelineState> createPipelineState(const std::unique_ptr<IShaderProgram>& shader, const VertexFormat& vertexFormat) override;
 
     void setProjectionMatrix(const glm::mat4& matrix) override;
     void setViewMatrix(const glm::mat4& matrix) override;

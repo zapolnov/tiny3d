@@ -102,14 +102,14 @@ bool LevelProcessor::process(const ConfigFile::Level& level)
         return false;
     }
 
-    mCxx << "        },\n";
-    mCxx << "        /* .playerX = */ " << playerStartX << ",\n";
-    mCxx << "        /* .playerY = */ " << playerStartY << ",\n";
-    mCxx << "        /* .vertices = */ " << level.id << "Vertices,\n";
-    mCxx << "        /* .indices = */ " << level.id << "Indices,\n";
-    mCxx << "        /* .vertexCount = */ " << meshBuilder.vertexCount() << ",\n";
-    mCxx << "        /* .indexCount = */ " << meshBuilder.indexCount() << ",\n";
-    mCxx << "    };\n\n";
+    mCxx << "    },\n";
+    mCxx << "    /* .playerX = */ " << playerStartX << ",\n";
+    mCxx << "    /* .playerY = */ " << playerStartY << ",\n";
+    mCxx << "    /* .vertices = */ " << level.id << "Vertices,\n";
+    mCxx << "    /* .indices = */ " << level.id << "Indices,\n";
+    mCxx << "    /* .vertexCount = */ " << meshBuilder.vertexCount() << ",\n";
+    mCxx << "    /* .indexCount = */ " << meshBuilder.indexCount() << ",\n";
+    mCxx << "};\n\n";
 
     meshBuilder.generateCxxCode(level.id, mCxx);
 

@@ -1,8 +1,10 @@
 #pragma once
+#include <glm/vec2.hpp>
 #include <glm/mat4x4.hpp>
 #include <memory>
 
 struct ShaderCode;
+class VertexFormat;
 class IRenderBuffer;
 class IPipelineState;
 class IShaderProgram;
@@ -17,12 +19,14 @@ class IRenderDevice
 public:
     virtual ~IRenderDevice() = default;
 
+    virtual glm::vec2 viewportSize() const = 0;
+
     virtual std::unique_ptr<IRenderBuffer> createBuffer(size_t size) = 0;
     virtual std::unique_ptr<IRenderBuffer> createBufferWithData(const void* data, size_t size) = 0;
 
     virtual std::unique_ptr<IShaderProgram> createShaderProgram(const ShaderCode* code) = 0;
 
-    virtual std::unique_ptr<IPipelineState> createPipelineState(const std::unique_ptr<IShaderProgram>& shader) = 0;
+    virtual std::unique_ptr<IPipelineState> createPipelineState(const std::unique_ptr<IShaderProgram>& shader, const VertexFormat& vertexFormat) = 0;
 
     virtual void setProjectionMatrix(const glm::mat4& matrix) = 0;
     virtual void setViewMatrix(const glm::mat4& matrix) = 0;

@@ -2,6 +2,7 @@
 #import "MetalRenderBuffer.h"
 #import "MetalPipelineState.h"
 #import "MetalShaderProgram.h"
+#import "Engine/Renderer/VertexFormat.h"
 #import "Engine/Renderer/ShaderCode.h"
 #import <cassert>
 
@@ -19,6 +20,11 @@ MetalRenderDevice::MetalRenderDevice(MTKView* view)
 
 MetalRenderDevice::~MetalRenderDevice()
 {
+}
+
+glm::vec2 MetalRenderDevice::viewportSize() const
+{
+    return glm::vec2(mViewport.width, mViewport.height);
 }
 
 std::unique_ptr<IRenderBuffer> MetalRenderDevice::createBuffer(size_t size)
@@ -44,20 +50,34 @@ std::unique_ptr<IShaderProgram> MetalRenderDevice::createShaderProgram(const Sha
     return std::make_unique<MetalShaderProgram>(this, library);
 }
 
-std::unique_ptr<IPipelineState> MetalRenderDevice::createPipelineState(const std::unique_ptr<IShaderProgram>& shader)
+std::unique_ptr<IPipelineState> MetalRenderDevice::createPipelineState(const std::unique_ptr<IShaderProgram>& shader, const VertexFormat& vertexFormat)
 {
     assert(dynamic_cast<MetalShaderProgram*>(shader.get()) != nullptr);
     auto metalShader = static_cast<MetalShaderProgram*>(shader.get());
 
-    MTLRenderPipelineDescriptor* desc = [[MTLRenderPipelineDescriptor alloc] init];
-    desc.vertexFunction = metalShader->vertexFunction();
-    desc.fragmentFunction = metalShader->fragmentFunction();
-    desc.depthAttachmentPixelFormat = MTLPixelFormatDepth24Unorm_Stencil8;
-    desc.stencilAttachmentPixelFormat = MTLPixelFormatDepth24Unorm_Stencil8;
-    desc.colorAttachments[0].pixelFormat = mView.colorPixelFormat;
+    MTLVertexDescriptor* vertexDesc = [MTLVertexDescriptor vertexDescriptor];
+    int i = 0;
+    for (const auto& attr : vertexFormat.attributes()) {
+        switch (attr.type) {
+            case VertexType::Float2: vertexDesc.attributes[i].format = MTLVertexFormatFloat2; break;
+            case VertexType::Float3: vertexDesc.attributes[i].format = MTLVertexFormatFloat3; break;
+        }
+        vertexDesc.attributes[i].bufferIndex = 0;
+        vertexDesc.attributes[i].offset = attr.offset;
+        ++i;
+    }
+    vertexDesc.layouts[0].stride = vertexFormat.stride();
+
+    MTLRenderPipelineDescriptor* pipelineDesc = [[MTLRenderPipelineDescriptor alloc] init];
+    pipelineDesc.vertexDescriptor = vertexDesc;
+    pipelineDesc.vertexFunction = metalShader->vertexFunction();
+    pipelineDesc.fragmentFunction = metalShader->fragmentFunction();
+    pipelineDesc.depthAttachmentPixelFormat = MTLPixelFormatDepth24Unorm_Stencil8;
+    pipelineDesc.stencilAttachmentPixelFormat = MTLPixelFormatDepth24Unorm_Stencil8;
+    pipelineDesc.colorAttachments[0].pixelFormat = mView.colorPixelFormat;
 
     NSError* error = nil;
-    id<MTLRenderPipelineState> state = [mDevice newRenderPipelineStateWithDescriptor:desc error:&error];
+    id<MTLRenderPipelineState> state = [mDevice newRenderPipelineStateWithDescriptor:pipelineDesc error:&error];
     if (error != nil)
         NSLog(@"Unable to create pipeline state: %@", error);
 
