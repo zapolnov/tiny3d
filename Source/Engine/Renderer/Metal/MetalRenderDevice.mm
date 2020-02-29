@@ -23,6 +23,7 @@ MetalRenderDevice::MetalRenderDevice(MTKView* view)
     const glm::mat4 identity = glm::mat4(1.0f);
     memcpy(&mCameraUniforms.projectionMatrix, &identity[0][0], 16 * sizeof(float));
     memcpy(&mCameraUniforms.viewMatrix, &identity[0][0], 16 * sizeof(float));
+    memcpy(&mCameraUniforms.modelMatrix, &identity[0][0], 16 * sizeof(float));
 }
 
 MetalRenderDevice::~MetalRenderDevice()
@@ -114,6 +115,11 @@ void MetalRenderDevice::setProjectionMatrix(const glm::mat4& matrix)
 void MetalRenderDevice::setViewMatrix(const glm::mat4& matrix)
 {
     memcpy(&mCameraUniforms.viewMatrix, &matrix[0][0], 16 * sizeof(float));
+}
+
+void MetalRenderDevice::setModelMatrix(const glm::mat4& matrix)
+{
+    memcpy(&mCameraUniforms.modelMatrix, &matrix[0][0], 16 * sizeof(float));
 }
 
 void MetalRenderDevice::setTexture(int index, const std::unique_ptr<ITexture>& texture)

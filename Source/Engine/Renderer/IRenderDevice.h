@@ -31,6 +31,7 @@ public:
 
     virtual void setProjectionMatrix(const glm::mat4& matrix) = 0;
     virtual void setViewMatrix(const glm::mat4& matrix) = 0;
+    virtual void setModelMatrix(const glm::mat4& matrix) = 0;
 
     virtual void setTexture(int index, const std::unique_ptr<ITexture>& texture) = 0;
     virtual void setPipelineState(const std::unique_ptr<IPipelineState>& state) = 0;

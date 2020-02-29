@@ -8,7 +8,10 @@ using namespace metal;
 struct VertexInput
 {
     float3 position [[attribute(0)]];
-    float2 texCoord [[attribute(1)]];
+    float3 normal [[attribute(1)]];
+    float3 tangent [[attribute(2)]];
+    float3 bitangent [[attribute(3)]];
+    float2 texCoord [[attribute(4)]];
 };
 
 struct FragmentInput
@@ -22,7 +25,7 @@ vertex FragmentInput vertexShader(
     constant CameraUniforms& cameraUniforms [[buffer(VertexInputIndex_CameraUniforms)]]
     )
 {
-    float4x4 viewProjectionMatrix = cameraUniforms.projectionMatrix * cameraUniforms.viewMatrix;
+    float4x4 viewProjectionMatrix = cameraUniforms.projectionMatrix * cameraUniforms.viewMatrix * cameraUniforms.modelMatrix;
 
     FragmentInput out;
     out.position = viewProjectionMatrix * float4(in.position, 1.0);

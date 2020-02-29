@@ -24,7 +24,7 @@ Material::~Material()
 {
 }
 
-void Material::bind()
+void Material::bind() const
 {
     mEngine->renderDevice()->setPipelineState(mPipelineState);
 

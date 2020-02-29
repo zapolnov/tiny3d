@@ -21,6 +21,7 @@ public:
 
     void setProjectionMatrix(const glm::mat4& matrix) override;
     void setViewMatrix(const glm::mat4& matrix) override;
+    void setModelMatrix(const glm::mat4& matrix) override;
 
     void setTexture(int index, const std::unique_ptr<ITexture>& texture) override;
     void setPipelineState(const std::unique_ptr<IPipelineState>& state) override;

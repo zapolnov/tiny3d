@@ -9,6 +9,7 @@ enum VertexInputIndex
 
 struct CameraUniforms
 {
+    simd::float4x4 modelMatrix;
     simd::float4x4 viewMatrix;
     simd::float4x4 projectionMatrix;
 };

@@ -11,7 +11,9 @@ enum
     LevelHeight = 20,
 };
 
+struct MeshData;
 class Engine;
+class StaticMesh;
 class IShaderProgram;
 class IPipelineState;
 class ITexture;
@@ -31,6 +33,13 @@ struct LevelVertex
     }
 };
 
+struct LevelStaticMesh
+{
+    int x;
+    int y;
+    const MeshData* mesh;
+};
+
 struct LevelData
 {
     bool walkable[LevelWidth * LevelHeight];
@@ -38,8 +47,10 @@ struct LevelData
     int playerY;
     const LevelVertex* vertices;
     const uint16_t* indices;
+    const LevelStaticMesh* staticMeshes;
     size_t vertexCount;
     size_t indexCount;
+    size_t staticMeshCount;
 };
 
 class Level
@@ -53,6 +64,13 @@ public:
     void render() const;
 
 private:
+    struct StaticObject
+    {
+        int x;
+        int y;
+        std::shared_ptr<StaticMesh> mesh;
+    };
+
     Engine* mEngine;
     bool mWalkable[LevelWidth * LevelHeight];
     glm::vec2 mPlayerPos;
@@ -61,5 +79,6 @@ private:
     std::unique_ptr<IPipelineState> mPipelineState;
     std::unique_ptr<ITexture> mTilesetTexture;
     std::unique_ptr<IShaderProgram> mShader;
+    std::vector<StaticObject> mStaticObjects;
     size_t mIndexCount;
 };

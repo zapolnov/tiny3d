@@ -16,6 +16,7 @@ LevelProcessor::LevelProcessor(const ConfigFile& config)
     mHdr << "{\n";
 
     mCxx << "#include \"Levels.h\"\n";
+    mCxx << "#include \"Meshes.h\"\n";
     mCxx << std::endl;
     mCxx << "namespace Levels\n";
     mCxx << "{\n";
@@ -39,11 +40,28 @@ bool LevelProcessor::process(const ConfigFile::Level& level)
     LevelMeshBuilder meshBuilder;
 
     mHdr << "    extern const LevelData " << level.id << ";\n";
+    mHdr << "    extern const LevelStaticMesh " << level.id << "StaticMeshes[];\n";
     mHdr << "    extern const LevelVertex " << level.id << "Vertices[];\n";
     mHdr << "    extern const uint16_t " << level.id << "Indices[];\n";
 
     mCxx << "    const LevelData " << level.id << " = {\n";
     mCxx << "        /* .walkable = */ {\n";
+
+    std::vector<LevelStaticMesh> staticMeshes;
+    std::vector<std::string> staticMeshIds;
+
+    auto addStaticMesh = [this, &staticMeshes, &staticMeshIds](int x, int y, std::string id) -> bool {
+            if (!mConfig.meshWithId(id))
+                return false;
+
+            LevelStaticMesh mesh;
+            mesh.x = x;
+            mesh.y = y;
+            staticMeshes.emplace_back(std::move(mesh));
+            staticMeshIds.emplace_back(std::move(id));
+
+            return true;
+        };
 
     char line[1024];
     int y = 0;
@@ -84,6 +102,15 @@ bool LevelProcessor::process(const ConfigFile::Level& level)
                     playerStartY = y;
                     break;
 
+                case '^':
+                    mCxx << " true,";
+                    meshBuilder.createFloor(x, y);
+                    if (!addStaticMesh(x, y, "jarMesh")) {
+                        fclose(f);
+                        return false;
+                    }
+                    break;
+
                 default:
                     fprintf(stderr, "Error in file \"%s\": unknown character '%c'.\n", level.file.c_str(), line[x]);
                     fclose(f);
@@ -111,8 +138,18 @@ bool LevelProcessor::process(const ConfigFile::Level& level)
     mCxx << "        /* .playerY = */ " << playerStartY << ",\n";
     mCxx << "        /* .vertices = */ " << level.id << "Vertices,\n";
     mCxx << "        /* .indices = */ " << level.id << "Indices,\n";
+    mCxx << "        /* .staticMeshes = */ " << level.id << "StaticMeshes,\n";
     mCxx << "        /* .vertexCount = */ " << meshBuilder.vertexCount() << ",\n";
     mCxx << "        /* .indexCount = */ " << meshBuilder.indexCount() << ",\n";
+    mCxx << "        /* .staticMeshCount = */ " << staticMeshes.size() << ",\n";
+    mCxx << "    };\n\n";
+
+    mCxx << "    const LevelStaticMesh " << level.id << "StaticMeshes[] = {\n";
+    size_t index = 0;
+    for (const auto& mesh : staticMeshes) {
+        mCxx << "        { " << mesh.x << ", " << mesh.y << ", &Meshes::" << staticMeshIds[index] << " },\n";
+        ++index;
+    }
     mCxx << "    };\n\n";
 
     meshBuilder.generateCxxCode(level.id, mCxx);

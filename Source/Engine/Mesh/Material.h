@@ -14,7 +14,7 @@ public:
     Material(Engine* engine, const MaterialData* data);
     ~Material();
 
-    void bind();
+    void bind() const;
 
 private:
     Engine* mEngine;
