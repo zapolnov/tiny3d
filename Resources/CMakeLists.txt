@@ -11,6 +11,8 @@ set(gen
     Compiled/Shaders.h
     Compiled/Shaders_Metal.cpp
     Compiled/Shaders_Metal.h
+    Compiled/Materials.cpp
+    Compiled/Materials.h
     Compiled/Meshes.cpp
     Compiled/Meshes.h
     Compiled/Textures.cpp

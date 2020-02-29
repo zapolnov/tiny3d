@@ -40,8 +40,14 @@ MeshProcessor::MeshProcessor(const ConfigFile& config)
     mHdr << "#pragma once\n";
     mHdr << "#include \"Engine/Mesh/MeshData.h\"\n";
     mHdr << std::endl;
+    mHdr << "namespace Meshes\n";
+    mHdr << "{\n";
 
     mCxx << "#include \"Meshes.h\"\n";
+    mCxx << "#include \"Materials.h\"\n";
+    mCxx << std::endl;
+    mCxx << "namespace Meshes\n";
+    mCxx << "{\n";
     mCxx << std::endl;
 }
 
@@ -81,9 +87,10 @@ bool MeshProcessor::process(const ConfigFile::Mesh& mesh)
 
     std::vector<MeshVertex> vertices;
     std::vector<MeshMaterial> materials;
+    std::vector<std::string> materialIds;
     std::vector<uint16_t> indices;
 
-    mHdr << "extern const MeshData " << mesh.id << ";\n";
+    mHdr << "    extern const MeshData " << mesh.id << ";\n";
 
     for (size_t meshIndex = 0; meshIndex < scene->mNumMeshes; meshIndex++) {
         const aiMesh* sceneMesh = scene->mMeshes[meshIndex];
@@ -164,19 +171,24 @@ bool MeshProcessor::process(const ConfigFile::Mesh& mesh)
         if (sceneMeshMaterial->Get(AI_MATKEY_NAME, materialName) == AI_SUCCESS)
             materialId = std::string(materialName.data, materialName.length);
 
+        auto it = mesh.materialMapping.find(materialId);
+        if (it != mesh.materialMapping.end())
+            materialId = it->second;
+
         const ConfigFile::Material* materialConfig = mConfig.materialWithId(materialId);
-        //if (!materialConfig)
-        //    return false;
+        if (!materialConfig)
+            return false;
 
         MeshMaterial material;
         material.firstIndex = firstIndex;
         material.indexCount = indices.size() - firstIndex;
         materials.emplace_back(std::move(material));
+        materialIds.emplace_back(std::move(materialId));
     }
 
-    mCxx << "static const MeshVertex " << mesh.id << "Vertices[] = {\n";
+    mCxx << "    static const MeshVertex " << mesh.id << "Vertices[] = {\n";
     for (const auto& vertex : vertices) {
-        mCxx << "    { { ";
+        mCxx << "        { { ";
         mCxx << vertex.position.x << ", ";
         mCxx << vertex.position.y << ", ";
         mCxx << vertex.position.z << ", ";
@@ -197,39 +209,46 @@ bool MeshProcessor::process(const ConfigFile::Mesh& mesh)
         mCxx << vertex.texCoord.y << ", ";
         mCxx << "} },\n";
     }
-    mCxx << "};\n\n";
+    mCxx << "    };\n\n";
 
-    mCxx << "static const uint16_t " << mesh.id << "Indices[] = {\n";
+    mCxx << "    static const uint16_t " << mesh.id << "Indices[] = {\n";
     for (auto index : indices)
-        mCxx << "    " << index << ",\n";
-    mCxx << "};\n\n";
+        mCxx << "        " << index << ",\n";
+    mCxx << "    };\n\n";
 
-    mCxx << "static const MeshMaterial " << mesh.id << "Materials[] = {\n";
+    mCxx << "    static const MeshMaterial " << mesh.id << "Materials[] = {\n";
+    size_t i = 0;
     for (const auto& material : materials) {
-        mCxx << "    {\n";
-        mCxx << "        /* .firstIndex = */ " << material.firstIndex <<  ",\n";
-        mCxx << "        /* .indexCount = */ " << material.indexCount <<  ",\n";
-        mCxx << "    },\n";
+        mCxx << "        {\n";
+        mCxx << "            /* .firstIndex = */ " << material.firstIndex <<  ",\n";
+        mCxx << "            /* .indexCount = */ " << material.indexCount <<  ",\n";
+        mCxx << "            /* .material = */ &Materials::" << materialIds[i] <<  ",\n";
+        mCxx << "        },\n";
+        ++i;
     }
-    mCxx << "};\n\n";
+    mCxx << "    };\n\n";
 
-    mCxx << "const MeshData " << mesh.id << " = {\n";
-    mCxx << "    /* .vertices = */ " << mesh.id <<  "Vertices,\n";
-    mCxx << "    /* .indices = */ " << mesh.id <<  "Indices,\n";
-    mCxx << "    /* .materials = */ " << mesh.id <<  "Materials,\n";
-    mCxx << "    /* .vertexCount = */ " << vertices.size() << ",\n";
-    mCxx << "    /* .indexCount = */ " << indices.size() << ",\n";
-    mCxx << "    /* .materialCount = */ " << materials.size() << ",\n";
-    mCxx << "};\n";
+    mCxx << "    const MeshData " << mesh.id << " = {\n";
+    mCxx << "        /* .vertices = */ " << mesh.id <<  "Vertices,\n";
+    mCxx << "        /* .indices = */ " << mesh.id <<  "Indices,\n";
+    mCxx << "        /* .materials = */ " << mesh.id <<  "Materials,\n";
+    mCxx << "        /* .vertexCount = */ " << vertices.size() << ",\n";
+    mCxx << "        /* .indexCount = */ " << indices.size() << ",\n";
+    mCxx << "        /* .materialCount = */ " << materials.size() << ",\n";
+    mCxx << "    };\n\n";
 
     return true;
 }
 
 bool MeshProcessor::generate()
 {
+    mHdr << "}\n";
+    mCxx << "}\n";
+
     if (!writeTextFile("Compiled/Meshes.cpp", std::move(mCxx)))
         return false;
     if (!writeTextFile("Compiled/Meshes.h", std::move(mHdr)))
         return false;
+
     return true;
 }

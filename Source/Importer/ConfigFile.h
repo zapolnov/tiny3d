@@ -15,7 +15,7 @@ public:
         std::string file;
 
         static constexpr char Tag[] = "level";
-        bool parse(const TiXmlElement* e);
+        bool parse(const ConfigFile* config, const TiXmlElement* e);
     };
 
     struct Texture
@@ -24,24 +24,27 @@ public:
         std::string file;
 
         static constexpr char Tag[] = "texture";
-        bool parse(const TiXmlElement* e);
+        bool parse(const ConfigFile* config, const TiXmlElement* e);
     };
 
     struct Material
     {
         std::string id;
+        std::string shaderId;
+        std::vector<std::string> textureIds;
 
         static constexpr char Tag[] = "material";
-        bool parse(const TiXmlElement* e);
+        bool parse(const ConfigFile* config, const TiXmlElement* e);
     };
 
     struct Mesh
     {
         std::string id;
         std::string file;
+        std::unordered_map<std::string, std::string> materialMapping;
 
         static constexpr char Tag[] = "mesh";
-        bool parse(const TiXmlElement* e);
+        bool parse(const ConfigFile* config, const TiXmlElement* e);
     };
 
     struct Shader
@@ -50,7 +53,7 @@ public:
         std::string file;
 
         static constexpr char Tag[] = "shader";
-        bool parse(const TiXmlElement* e);
+        bool parse(const ConfigFile* config, const TiXmlElement* e);
     };
 
     ConfigFile();
@@ -77,7 +80,8 @@ private:
         std::unordered_map<std::string, size_t> map;
 
         const T* find(const std::string& id) const;
-        bool parse(const TiXmlElement* parent);
+        bool parseReference(const TiXmlElement* e, std::string& outId) const;
+        bool parse(const ConfigFile* config, const TiXmlElement* parent);
     };
 
     Collection<Level> mLevels;

@@ -7,15 +7,25 @@ ShaderProcessor::ShaderProcessor(const ConfigFile& config)
     mHdr << "#pragma once\n";
     mHdr << "#include \"Engine/Renderer/ShaderCode.h\"\n";
     mHdr << std::endl;
+    mHdr << "namespace Shaders\n";
+    mHdr << "{\n";
 
     mCxx << "#include \"Shaders.h\"\n";
     mCxx << "#include \"Shaders_Metal.h\"\n";
     mCxx << std::endl;
+    mCxx << "namespace Shaders\n";
+    mCxx << "{\n";
+    mCxx << std::endl;
 
     mHdrMetal << "#pragma once\n";
     mHdrMetal << std::endl;
+    mHdrMetal << "namespace Shaders::Metal\n";
+    mHdrMetal << "{\n";
 
     mCxxMetal << "#include \"Shaders_Metal.h\"\n";
+    mCxxMetal << std::endl;
+    mCxxMetal << "namespace Shaders::Metal\n";
+    mCxxMetal << "{\n";
     mCxxMetal << std::endl;
 }
 
@@ -25,6 +35,11 @@ ShaderProcessor::~ShaderProcessor()
 
 bool ShaderProcessor::generate()
 {
+    mHdr << "}\n";
+    mCxx << "}\n";
+    mHdrMetal << "}\n";
+    mCxxMetal << "}\n";
+
     if (!writeTextFile("Compiled/Shaders.cpp", std::move(mCxx)))
         return false;
     if (!writeTextFile("Compiled/Shaders.h", std::move(mHdr)))
@@ -40,12 +55,12 @@ bool ShaderProcessor::generate()
 
 bool ShaderProcessor::process(const ConfigFile::Shader& shader)
 {
-    mHdr << "extern const ShaderCode " << shader.id << ";\n";
+    mHdr << "    extern const ShaderCode " << shader.id << ";\n";
 
-    mCxx << "const ShaderCode " << shader.id << " = {\n";
-    mCxx << "    /* .metal = */ &" << shader.id << "Metal,\n";
-    mCxx << "    /* .metalSize = */ sizeof(" << shader.id << "Metal),\n";
-    mCxx << "};\n";
+    mCxx << "    const ShaderCode " << shader.id << " = {\n";
+    mCxx << "        /* .metal = */ &Metal::" << shader.id << ",\n";
+    mCxx << "        /* .metalSize = */ sizeof(Metal::" << shader.id << "),\n";
+    mCxx << "    };\n\n";
 
     if (!compileMetalShader(shader))
         return false;
@@ -77,12 +92,12 @@ bool ShaderProcessor::compileMetalShader(const ConfigFile::Shader& shader)
 
     std::string bytes = data.str();
 
-    mHdrMetal << "extern const unsigned char " << shader.id << "Metal[" << bytes.length() << "];\n";
+    mHdrMetal << "    extern const unsigned char " << shader.id << "[" << bytes.length() << "];\n";
 
-    mCxxMetal << "const unsigned char " << shader.id << "Metal[" << bytes.length() << "] = {\n";
+    mCxxMetal << "    const unsigned char " << shader.id << "[" << bytes.length() << "] = {\n";
     for (auto ch : bytes)
-        mCxxMetal << "    " << unsigned(uint8_t(ch)) << ",\n";
-    mCxxMetal << "};\n";
+        mCxxMetal << "        " << unsigned(uint8_t(ch)) << ",\n";
+    mCxxMetal << "    };\n\n";
 
     return true;
 }

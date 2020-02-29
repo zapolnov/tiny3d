@@ -12,8 +12,13 @@ LevelProcessor::LevelProcessor(const ConfigFile& config)
     mHdr << "#pragma once\n";
     mHdr << "#include \"Game/Level.h\"\n";
     mHdr << std::endl;
+    mHdr << "namespace Levels\n";
+    mHdr << "{\n";
 
     mCxx << "#include \"Levels.h\"\n";
+    mCxx << std::endl;
+    mCxx << "namespace Levels\n";
+    mCxx << "{\n";
     mCxx << std::endl;
 }
 
@@ -33,12 +38,12 @@ bool LevelProcessor::process(const ConfigFile::Level& level)
 
     LevelMeshBuilder meshBuilder;
 
-    mHdr << "extern const LevelData " << level.id << ";\n";
-    mHdr << "extern const LevelVertex " << level.id << "Vertices[];\n";
-    mHdr << "extern const uint16_t " << level.id << "Indices[];\n";
+    mHdr << "    extern const LevelData " << level.id << ";\n";
+    mHdr << "    extern const LevelVertex " << level.id << "Vertices[];\n";
+    mHdr << "    extern const uint16_t " << level.id << "Indices[];\n";
 
-    mCxx << "const LevelData " << level.id << " = {\n";
-    mCxx << "    /* .walkable = */ {\n";
+    mCxx << "    const LevelData " << level.id << " = {\n";
+    mCxx << "        /* .walkable = */ {\n";
 
     char line[1024];
     int y = 0;
@@ -54,7 +59,7 @@ bool LevelProcessor::process(const ConfigFile::Level& level)
             return false;
         }
 
-        mCxx << "        ";
+        mCxx << "            ";
         for (int x = 0; x < LevelWidth; x++) {
             switch (line[x]) {
                 case '#':
@@ -101,14 +106,14 @@ bool LevelProcessor::process(const ConfigFile::Level& level)
         return false;
     }
 
-    mCxx << "    },\n";
-    mCxx << "    /* .playerX = */ " << playerStartX << ",\n";
-    mCxx << "    /* .playerY = */ " << playerStartY << ",\n";
-    mCxx << "    /* .vertices = */ " << level.id << "Vertices,\n";
-    mCxx << "    /* .indices = */ " << level.id << "Indices,\n";
-    mCxx << "    /* .vertexCount = */ " << meshBuilder.vertexCount() << ",\n";
-    mCxx << "    /* .indexCount = */ " << meshBuilder.indexCount() << ",\n";
-    mCxx << "};\n\n";
+    mCxx << "        },\n";
+    mCxx << "        /* .playerX = */ " << playerStartX << ",\n";
+    mCxx << "        /* .playerY = */ " << playerStartY << ",\n";
+    mCxx << "        /* .vertices = */ " << level.id << "Vertices,\n";
+    mCxx << "        /* .indices = */ " << level.id << "Indices,\n";
+    mCxx << "        /* .vertexCount = */ " << meshBuilder.vertexCount() << ",\n";
+    mCxx << "        /* .indexCount = */ " << meshBuilder.indexCount() << ",\n";
+    mCxx << "    };\n\n";
 
     meshBuilder.generateCxxCode(level.id, mCxx);
 
@@ -117,9 +122,13 @@ bool LevelProcessor::process(const ConfigFile::Level& level)
 
 bool LevelProcessor::generate()
 {
+    mHdr << "}\n";
+    mCxx << "}\n";
+
     if (!writeTextFile("Compiled/Levels.cpp", std::move(mCxx)))
         return false;
     if (!writeTextFile("Compiled/Levels.h", std::move(mHdr)))
         return false;
+
     return true;
 }

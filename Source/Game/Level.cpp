@@ -17,10 +17,10 @@ Level::Level(Engine* engine, const LevelData* data)
     memcpy(mWalkable, data->walkable, LevelWidth * LevelHeight * sizeof(bool));
     mPlayerPos = glm::vec2(data->playerX, data->playerY);
 
-    mShader = mEngine->renderDevice()->createShaderProgram(&levelShader);
+    mShader = mEngine->renderDevice()->createShaderProgram(&Shaders::levelShader);
     mVertexBuffer = mEngine->renderDevice()->createBufferWithData(data->vertices, data->vertexCount * sizeof(LevelVertex));
     mIndexBuffer = mEngine->renderDevice()->createBufferWithData(data->indices, data->indexCount * sizeof(uint16_t));
-    mTilesetTexture = mEngine->renderDevice()->createTexture(&dungeonTileset);
+    mTilesetTexture = mEngine->renderDevice()->createTexture(&Textures::dungeonTileset);
     mPipelineState = mEngine->renderDevice()->createPipelineState(mShader, LevelVertex::format());
 }
 

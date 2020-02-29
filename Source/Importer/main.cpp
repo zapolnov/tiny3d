@@ -1,6 +1,7 @@
 #include "ConfigFile.h"
 #include "ShaderProcessor.h"
 #include "TextureProcessor.h"
+#include "MaterialProcessor.h"
 #include "MeshProcessor.h"
 #include "LevelProcessor.h"
 
@@ -24,6 +25,13 @@ int main(int argc, char** argv)
             return 1;
     }
 
+    MaterialProcessor materials(config);
+    for (const auto& material : config.materials()) {
+        fprintf(stderr, "Importing material \"%s\"...\n", material.id.c_str());
+        if (!materials.process(material))
+            return 1;
+    }
+
     MeshProcessor meshes(config);
     for (const auto& mesh : config.meshes()) {
         fprintf(stderr, "Importing mesh \"%s\"...\n", mesh.file.c_str());
@@ -41,6 +49,8 @@ int main(int argc, char** argv)
     if (!levels.generate())
         return 1;
     if (!textures.generate())
+        return 1;
+    if (!materials.generate())
         return 1;
     if (!meshes.generate())
         return 1;

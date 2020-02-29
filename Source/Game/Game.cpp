@@ -9,7 +9,7 @@ Game::Game(Engine* engine)
     mCamera.setFov(90.0f * 3.1415f / 180.0f);
     mCamera.setZRange(1.0f, 100.0f);
 
-    mLevel = std::make_unique<Level>(mEngine, &level1);
+    mLevel = std::make_unique<Level>(mEngine, &Levels::level1);
 }
 
 Game::~Game()

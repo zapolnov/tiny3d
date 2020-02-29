@@ -29,6 +29,8 @@ void Material::bind()
     mEngine->renderDevice()->setPipelineState(mPipelineState);
 
     size_t index = 0;
-    for (const auto& texture : mTextures)
+    for (const auto& texture : mTextures) {
         mEngine->renderDevice()->setTexture(index, texture->instance());
+        ++index;
+    }
 }

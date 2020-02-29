@@ -6,6 +6,6 @@ struct TextureData;
 struct MaterialData
 {
     unsigned textureCount;
-    const TextureData** textures;
+    const TextureData* const* textures;
     const ShaderCode* shader;
 };

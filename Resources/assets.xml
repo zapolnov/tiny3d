@@ -6,13 +6,15 @@
     <shader id="levelShader" file="Shaders/Level.metal" />
 
     <texture id="dungeonTileset" file="Textures/dungeon.png" />
+    <texture id="jarMeshTexture" file="Meshes/CutePropModels/jar.png" />
 
     <material id="jarMesh">
-        <shader id="defaultShader" />
-        <texture id="jarMeshTexture" file="Meshes/CutePropModels/jar.png" />
+        <useShader id="defaultShader" />
+        <useTexture id="jarMeshTexture" />
     </material>
 
     <mesh id="jarMesh" file="Meshes/CutePropModels/jar.obj">
+        <useMaterial id="jarMesh" forId="DefaultMaterial" />
     </mesh>
 
 </assets>

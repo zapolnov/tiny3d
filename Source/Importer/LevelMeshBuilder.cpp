@@ -22,9 +22,9 @@ LevelMeshBuilder::~LevelMeshBuilder()
 
 void LevelMeshBuilder::generateCxxCode(const std::string& levelId, std::stringstream& ss) const
 {
-    ss << "const LevelVertex " << levelId << "Vertices[] = {\n";
+    ss << "    const LevelVertex " << levelId << "Vertices[] = {\n";
     for (const auto& vertex : mVertices) {
-        ss << "    { { ";
+        ss << "        { { ";
         ss << vertex.position.x << ", ";
         ss << vertex.position.y << ", ";
         ss << vertex.position.z << ", ";
@@ -33,12 +33,12 @@ void LevelMeshBuilder::generateCxxCode(const std::string& levelId, std::stringst
         ss << vertex.texCoord.y << ", ";
         ss << "} },\n";
     }
-    ss << "};\n\n";
+    ss << "    };\n\n";
 
-    ss << "const uint16_t " << levelId << "Indices[] = {\n";
+    ss << "    const uint16_t " << levelId << "Indices[] = {\n";
     for (auto index : mIndices)
-        ss << "    " << index << ",\n";
-    ss << "};\n";
+        ss << "        " << index << ",\n";
+    ss << "    };\n\n";
 }
 
 void LevelMeshBuilder::createFloor(float x, float y)

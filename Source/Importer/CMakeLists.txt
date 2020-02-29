@@ -14,6 +14,8 @@ add(EXECUTABLE
         LevelMeshBuilder.h
         LevelProcessor.cpp
         LevelProcessor.h
+        MaterialProcessor.cpp
+        MaterialProcessor.h
         MeshProcessor.cpp
         MeshProcessor.h
         ShaderProcessor.cpp
