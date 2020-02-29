@@ -7,6 +7,11 @@
 
     <texture id="dungeonTileset" file="Textures/dungeon.png" />
 
+    <material id="jarMesh">
+        <shader id="defaultShader" />
+        <texture id="jarMeshTexture" file="Meshes/CutePropModels/jar.png" />
+    </material>
+
     <mesh id="jarMesh" file="Meshes/CutePropModels/jar.obj">
     </mesh>
 

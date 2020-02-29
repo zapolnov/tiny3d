@@ -6,8 +6,9 @@
 #include "Engine/Renderer/IRenderDevice.h"
 #include "Engine/Renderer/IPipelineState.h"
 #include "Engine/Mesh/MeshData.h"
+#include "Engine/Mesh/MaterialData.h"
 
-Material::Material(Engine* engine, const MeshMaterial* data)
+Material::Material(Engine* engine, const MaterialData* data)
     : mEngine(engine)
 {
     mShader = mEngine->resourceManager()->cachedShader(data->shader);

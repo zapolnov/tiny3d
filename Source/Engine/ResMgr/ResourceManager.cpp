@@ -29,7 +29,7 @@ std::shared_ptr<Shader> ResourceManager::cachedShader(const ShaderCode* code)
     return shader;
 }
 
-std::shared_ptr<Material> ResourceManager::cachedMaterial(const MeshMaterial* data)
+std::shared_ptr<Material> ResourceManager::cachedMaterial(const MaterialData* data)
 {
     auto it = mMaterials.find(data);
     if (it != mMaterials.end()) {

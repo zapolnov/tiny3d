@@ -164,6 +164,10 @@ bool MeshProcessor::process(const ConfigFile::Mesh& mesh)
         if (sceneMeshMaterial->Get(AI_MATKEY_NAME, materialName) == AI_SUCCESS)
             materialId = std::string(materialName.data, materialName.length);
 
+        const ConfigFile::Material* materialConfig = mConfig.materialWithId(materialId);
+        //if (!materialConfig)
+        //    return false;
+
         MeshMaterial material;
         material.firstIndex = firstIndex;
         material.indexCount = indices.size() - firstIndex;

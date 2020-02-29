@@ -2,6 +2,86 @@
 #include <stdio.h>
 #include <tinyxml.h>
 
+namespace
+{
+    bool mandatoryAttribute(const TiXmlElement* e, const char* name, std::string& outValue)
+    {
+        const char* value = e->Attribute(name);
+        if (!value || *value == 0) {
+            fprintf(stderr, "Unable to parse config file: missing mandatory attribute \"%s\" in element \"%s\".\n",
+                name, e->Value());
+            return false;
+        }
+        outValue = value;
+        return true;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+bool ConfigFile::Level::parse(const TiXmlElement* e)
+{
+    return mandatoryAttribute(e, "file", file);
+}
+
+bool ConfigFile::Texture::parse(const TiXmlElement* e)
+{
+    return mandatoryAttribute(e, "file", file);
+}
+
+bool ConfigFile::Material::parse(const TiXmlElement* e)
+{
+    return true;
+}
+
+bool ConfigFile::Mesh::parse(const TiXmlElement* e)
+{
+    return mandatoryAttribute(e, "file", file);
+}
+
+bool ConfigFile::Shader::parse(const TiXmlElement* e)
+{
+    return mandatoryAttribute(e, "file", file);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T> const T* ConfigFile::Collection<T>::find(const std::string& id) const
+{
+    auto it = map.find(id);
+    if (it == map.end()) {
+        fprintf(stderr, "No %s with id \"%s\".", T::Tag, id.c_str());
+        return nullptr;
+    }
+    return &list[it->second];
+}
+
+template <typename T> bool ConfigFile::Collection<T>::parse(const TiXmlElement* parent)
+{
+    for (const TiXmlElement* e = parent->FirstChildElement(T::Tag); e; e = e->NextSiblingElement(T::Tag)) {
+        std::string id;
+        if (!mandatoryAttribute(e, "id", id))
+            return false;
+
+        if (map.find(id) != map.end()) {
+            fprintf(stderr, "Unable to parse config file: duplicate %s \"%s\".\n", T::Tag, id.c_str());
+            return false;
+        }
+
+        T value;
+        value.id = id;
+        if (!value.parse(e))
+            return false;
+
+        map[id] = list.size();
+        list.emplace_back(std::move(value));
+    }
+
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 ConfigFile::ConfigFile()
 {
 }
@@ -9,6 +89,12 @@ ConfigFile::ConfigFile()
 ConfigFile::~ConfigFile()
 {
 }
+
+const ConfigFile::Level* ConfigFile::levelWithId(const std::string& id) const { return mLevels.find(id); }
+const ConfigFile::Texture* ConfigFile::textureWithId(const std::string& id) const { return mTextures.find(id); }
+const ConfigFile::Material* ConfigFile::materialWithId(const std::string& id) const { return mMaterials.find(id); }
+const ConfigFile::Mesh* ConfigFile::meshWithId(const std::string& id) const { return mMeshes.find(id); }
+const ConfigFile::Shader* ConfigFile::shaderWithId(const std::string& id) const { return mShaders.find(id); }
 
 bool ConfigFile::load(const std::string& file)
 {
@@ -20,71 +106,16 @@ bool ConfigFile::load(const std::string& file)
     }
 
     TiXmlElement* root = xml.RootElement();
-
-    std::vector<Level> levels;
-    for (const TiXmlElement* e = root->FirstChildElement("level"); e; e = e->NextSiblingElement("level")) {
-        const char* id = e->Attribute("id");
-        const char* file = e->Attribute("file");
-        if (!id || !file) {
-            fprintf(stderr, "Unable to parse config file: missing mandatory attribute in element \"level\".\n");
-            return false;
-        }
-
-        Level level;
-        level.id = id;
-        level.file = file;
-        levels.emplace_back(std::move(level));
-    }
-
-    std::vector<Texture> textures;
-    for (const TiXmlElement* e = root->FirstChildElement("texture"); e; e = e->NextSiblingElement("texture")) {
-        const char* id = e->Attribute("id");
-        const char* file = e->Attribute("file");
-        if (!id || !file) {
-            fprintf(stderr, "Unable to parse config file: missing mandatory attribute in element \"texture\".\n");
-            return false;
-        }
-
-        Texture texture;
-        texture.id = id;
-        texture.file = file;
-        textures.emplace_back(std::move(texture));
-    }
-
-    std::vector<Mesh> meshes;
-    for (const TiXmlElement* e = root->FirstChildElement("mesh"); e; e = e->NextSiblingElement("mesh")) {
-        const char* id = e->Attribute("id");
-        const char* file = e->Attribute("file");
-        if (!id || !file) {
-            fprintf(stderr, "Unable to parse config file: missing mandatory attribute in element \"mesh\".\n");
-            return false;
-        }
-
-        Mesh mesh;
-        mesh.id = id;
-        mesh.file = file;
-        meshes.emplace_back(std::move(mesh));
-    }
-
-    std::vector<Shader> shaders;
-    for (const TiXmlElement* e = root->FirstChildElement("shader"); e; e = e->NextSiblingElement("shader")) {
-        const char* id = e->Attribute("id");
-        const char* file = e->Attribute("file");
-        if (!id || !file) {
-            fprintf(stderr, "Unable to parse config file: missing mandatory attribute in element \"shader\".\n");
-            return false;
-        }
-
-        Shader shader;
-        shader.id = id;
-        shader.file = file;
-        shaders.emplace_back(std::move(shader));
-    }
-
-    mLevels = std::move(levels);
-    mTextures = std::move(textures);
-    mMeshes = std::move(meshes);
-    mShaders = std::move(shaders);
+    if (!mLevels.parse(root))
+        return false;
+    if (!mTextures.parse(root))
+        return false;
+    if (!mMaterials.parse(root))
+        return false;
+    if (!mMeshes.parse(root))
+        return false;
+    if (!mShaders.parse(root))
+        return false;
 
     return true;
 }

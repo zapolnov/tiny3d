@@ -2,7 +2,7 @@
 #include <vector>
 #include <memory>
 
-struct MeshMaterial;
+struct MaterialData;
 class Engine;
 class IPipelineState;
 class Shader;
@@ -11,7 +11,7 @@ class Texture;
 class Material
 {
 public:
-    Material(Engine* engine, const MeshMaterial* data);
+    Material(Engine* engine, const MaterialData* data);
     ~Material();
 
     void bind();

@@ -4,8 +4,7 @@
 #include <glm/vec3.hpp>
 #include <cstdint>
 
-struct ShaderCode;
-struct TextureData;
+struct MaterialData;
 
 struct MeshVertex
 {
@@ -31,9 +30,7 @@ struct MeshMaterial
 {
     unsigned firstIndex;
     unsigned indexCount;
-    unsigned textureCount;
-    const ShaderCode* shader;
-    const TextureData** textures;
+    const MaterialData* material;
 };
 
 struct MeshData
