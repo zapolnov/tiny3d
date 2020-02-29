@@ -3,7 +3,6 @@
 #include "Engine/Core/Engine.h"
 #include "Engine/Renderer/IRenderDevice.h"
 #include "Engine/Renderer/IRenderBuffer.h"
-#pragma once
 
 StaticMesh::StaticMesh(Engine* engine, const MeshData* data)
     : mEngine(engine)

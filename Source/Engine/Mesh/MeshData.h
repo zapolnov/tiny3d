@@ -1,7 +1,11 @@
 #pragma once
+#include "Engine/Renderer/VertexFormat.h"
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <cstdint>
+
+struct ShaderCode;
+struct TextureData;
 
 struct MeshVertex
 {
@@ -10,12 +14,26 @@ struct MeshVertex
     glm::vec3 tangent;
     glm::vec3 bitangent;
     glm::vec2 texCoord;
+
+    static VertexFormat format()
+    {
+        VertexFormat fmt;
+        fmt.addAttribute(VertexType::Float3); // position
+        fmt.addAttribute(VertexType::Float3); // normal
+        fmt.addAttribute(VertexType::Float3); // tangent
+        fmt.addAttribute(VertexType::Float3); // bitangent
+        fmt.addAttribute(VertexType::Float2); // texCoord
+        return fmt;
+    }
 };
 
 struct MeshMaterial
 {
     unsigned firstIndex;
     unsigned indexCount;
+    unsigned textureCount;
+    const ShaderCode* shader;
+    const TextureData** textures;
 };
 
 struct MeshData

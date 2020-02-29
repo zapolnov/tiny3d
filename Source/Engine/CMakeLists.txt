@@ -25,6 +25,8 @@ add(STATIC_LIBRARY
         Math/Camera.h
         Math/PerspectiveCamera.cpp
         Math/PerspectiveCamera.h
+        Mesh/Material.cpp
+        Mesh/Material.h
         Mesh/MeshData.h
         Mesh/StaticMesh.cpp
         Mesh/StaticMesh.h
@@ -35,6 +37,10 @@ add(STATIC_LIBRARY
         Renderer/ITexture.h
         Renderer/ShaderCode.h
         Renderer/VertexFormat.h
+        ResMgr/ResourceManager.cpp
+        ResMgr/ResourceManager.h
+        ResMgr/Shader.h
+        ResMgr/Texture.h
     )
 
 if(APPLE)
