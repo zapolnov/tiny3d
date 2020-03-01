@@ -24,21 +24,29 @@ namespace
         outValue = value;
         return true;
     }
+
+    float optionalFloatAttribute(const TiXmlElement* e, const char* name, float defaultValue)
+    {
+        const char* value = e->Attribute(name);
+        if (value)
+            return strtod(value, nullptr);
+        return defaultValue;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-bool ConfigFile::Level::parse(const ConfigFile* config, const TiXmlElement* e)
+bool ConfigFile::Level::parse(ConfigFile* config, const TiXmlElement* e)
 {
     return mandatoryAttribute(e, "file", file);
 }
 
-bool ConfigFile::Texture::parse(const ConfigFile* config, const TiXmlElement* e)
+bool ConfigFile::Texture::parse(ConfigFile* config, const TiXmlElement* e)
 {
     return mandatoryAttribute(e, "file", file);
 }
 
-bool ConfigFile::Material::parse(const ConfigFile* config, const TiXmlElement* e)
+bool ConfigFile::Material::parse(ConfigFile* config, const TiXmlElement* e)
 {
     const TiXmlElement* ee = mandatoryElement(e, "useShader");
     if (!ee || !config->mShaders.parseReference(ee, shaderId))
@@ -55,7 +63,7 @@ bool ConfigFile::Material::parse(const ConfigFile* config, const TiXmlElement* e
     return true;
 }
 
-bool ConfigFile::Mesh::parse(const ConfigFile* config, const TiXmlElement* e)
+bool ConfigFile::Mesh::parse(ConfigFile* config, const TiXmlElement* e)
 {
     if (!mandatoryAttribute(e, "file", file))
         return false;
@@ -78,10 +86,41 @@ bool ConfigFile::Mesh::parse(const ConfigFile* config, const TiXmlElement* e)
         materialMapping[oldMaterialId] = std::move(newMaterialId);
     }
 
+    rotate = glm::vec3(0.0f);
+    translate = glm::vec3(0.0f);
+    scale = glm::vec3(1.0f);
+
+    const TiXmlElement* ee = e->FirstChildElement("useInLevel");
+    if (ee) {
+        std::string asChar;
+        if (!mandatoryAttribute(ee, "asChar", asChar))
+            return false;
+        if (asChar.length() != 1) {
+            fprintf(stderr, "Invalid value of the \"asChar\" attribute.\n");
+            return false;
+        }
+
+        if (config->mLevelMeshes.find(asChar[0]) != config->mLevelMeshes.end()) {
+            fprintf(stderr, "Duplicate mesh binding for level character \"%c\".\n", asChar[0]);
+            return false;
+        }
+        config->mLevelMeshes[asChar[0]] = id;
+
+        rotate.x = optionalFloatAttribute(ee, "rX", 0.0f) * 3.1415f / 180.0f;
+        rotate.y = optionalFloatAttribute(ee, "rY", 0.0f) * 3.1415f / 180.0f;
+        rotate.z = optionalFloatAttribute(ee, "rZ", 0.0f) * 3.1415f / 180.0f;
+        translate.x = optionalFloatAttribute(ee, "tX", 0.0f);
+        translate.y = optionalFloatAttribute(ee, "tY", 0.0f);
+        translate.z = optionalFloatAttribute(ee, "tZ", 0.0f);
+        scale.x = optionalFloatAttribute(ee, "sX", 1.0f);
+        scale.y = optionalFloatAttribute(ee, "sY", 1.0f);
+        scale.z = optionalFloatAttribute(ee, "sZ", 1.0f);
+    }
+
     return true;
 }
 
-bool ConfigFile::Shader::parse(const ConfigFile* config, const TiXmlElement* e)
+bool ConfigFile::Shader::parse(ConfigFile* config, const TiXmlElement* e)
 {
     return mandatoryAttribute(e, "file", file);
 }
@@ -106,7 +145,7 @@ template <typename T> bool ConfigFile::Collection<T>::parseReference(const TiXml
     return (find(outId) != nullptr);
 }
 
-template <typename T> bool ConfigFile::Collection<T>::parse(const ConfigFile* config, const TiXmlElement* parent)
+template <typename T> bool ConfigFile::Collection<T>::parse(ConfigFile* config, const TiXmlElement* parent)
 {
     for (const TiXmlElement* e = parent->FirstChildElement(T::Tag); e; e = e->NextSiblingElement(T::Tag)) {
         std::string id;
@@ -145,6 +184,14 @@ const ConfigFile::Texture* ConfigFile::textureWithId(const std::string& id) cons
 const ConfigFile::Material* ConfigFile::materialWithId(const std::string& id) const { return mMaterials.find(id); }
 const ConfigFile::Mesh* ConfigFile::meshWithId(const std::string& id) const { return mMeshes.find(id); }
 const ConfigFile::Shader* ConfigFile::shaderWithId(const std::string& id) const { return mShaders.find(id); }
+
+const ConfigFile::Mesh* ConfigFile::meshForLevelChar(char ch) const
+{
+    auto it = mLevelMeshes.find(ch);
+    if (it == mLevelMeshes.end())
+        return nullptr;
+    return meshWithId(it->second);
+}
 
 bool ConfigFile::load(const std::string& file)
 {

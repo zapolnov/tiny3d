@@ -9,7 +9,6 @@
 #include "Engine/ResMgr/ResourceManager.h"
 #include "Compiled/Shaders.h"
 #include "Compiled/Textures.h"
-#include <glm/gtc/matrix_transform.hpp>
 #include <vector>
 #include <cstring>
 
@@ -23,8 +22,7 @@ Level::Level(Engine* engine, const LevelData* data)
     mStaticObjects.reserve(data->staticMeshCount);
     for (size_t i = 0; i < data->staticMeshCount; i++) {
         StaticObject obj;
-        obj.x = data->staticMeshes[i].x;
-        obj.y = data->staticMeshes[i].y;
+        obj.matrix = data->staticMeshes[i].matrix;
         obj.mesh = mEngine->resourceManager()->cachedStaticMesh(data->staticMeshes[i].mesh);
         mStaticObjects.emplace_back(std::move(obj));
     }
@@ -56,7 +54,7 @@ void Level::render() const
     mEngine->renderDevice()->drawIndexedPrimitive(Triangles, mIndexBuffer, 0, mIndexCount);
 
     for (const auto& obj : mStaticObjects) {
-        mEngine->renderDevice()->setModelMatrix(glm::translate(glm::mat4(1.0f), glm::vec3(obj.x, obj.y, 0.0f)));
+        mEngine->renderDevice()->setModelMatrix(obj.matrix);
         obj.mesh->render();
     }
 }

@@ -2,6 +2,7 @@
 #include "Engine/Renderer/VertexFormat.h"
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
 #include <vector>
 #include <memory>
 
@@ -35,8 +36,7 @@ struct LevelVertex
 
 struct LevelStaticMesh
 {
-    int x;
-    int y;
+    glm::mat4 matrix;
     const MeshData* mesh;
 };
 
@@ -66,8 +66,7 @@ public:
 private:
     struct StaticObject
     {
-        int x;
-        int y;
+        glm::mat4 matrix;
         std::shared_ptr<StaticMesh> mesh;
     };
 

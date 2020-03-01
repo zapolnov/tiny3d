@@ -15,6 +15,7 @@
 
     <mesh id="jarMesh" file="Meshes/CutePropModels/jar.obj">
         <useMaterial id="jarMesh" forId="DefaultMaterial" />
+        <useInLevel asChar="^" tX="0.5" tY="0.5" rX="90" sX="0.4" sY="0.2" sZ="0.4" />
     </mesh>
 
 </assets>

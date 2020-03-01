@@ -1,4 +1,5 @@
 #pragma once
+#include <glm/vec3.hpp>
 #include <functional>
 #include <unordered_map>
 #include <vector>
@@ -15,7 +16,7 @@ public:
         std::string file;
 
         static constexpr char Tag[] = "level";
-        bool parse(const ConfigFile* config, const TiXmlElement* e);
+        bool parse(ConfigFile* config, const TiXmlElement* e);
     };
 
     struct Texture
@@ -24,7 +25,7 @@ public:
         std::string file;
 
         static constexpr char Tag[] = "texture";
-        bool parse(const ConfigFile* config, const TiXmlElement* e);
+        bool parse(ConfigFile* config, const TiXmlElement* e);
     };
 
     struct Material
@@ -34,7 +35,7 @@ public:
         std::vector<std::string> textureIds;
 
         static constexpr char Tag[] = "material";
-        bool parse(const ConfigFile* config, const TiXmlElement* e);
+        bool parse(ConfigFile* config, const TiXmlElement* e);
     };
 
     struct Mesh
@@ -42,9 +43,12 @@ public:
         std::string id;
         std::string file;
         std::unordered_map<std::string, std::string> materialMapping;
+        glm::vec3 rotate;
+        glm::vec3 translate;
+        glm::vec3 scale;
 
         static constexpr char Tag[] = "mesh";
-        bool parse(const ConfigFile* config, const TiXmlElement* e);
+        bool parse(ConfigFile* config, const TiXmlElement* e);
     };
 
     struct Shader
@@ -53,7 +57,7 @@ public:
         std::string file;
 
         static constexpr char Tag[] = "shader";
-        bool parse(const ConfigFile* config, const TiXmlElement* e);
+        bool parse(ConfigFile* config, const TiXmlElement* e);
     };
 
     ConfigFile();
@@ -71,6 +75,8 @@ public:
     const Mesh* meshWithId(const std::string& id) const;
     const Shader* shaderWithId(const std::string& id) const;
 
+    const Mesh* meshForLevelChar(char ch) const;
+
     bool load(const std::string& file);
 
 private:
@@ -81,7 +87,7 @@ private:
 
         const T* find(const std::string& id) const;
         bool parseReference(const TiXmlElement* e, std::string& outId) const;
-        bool parse(const ConfigFile* config, const TiXmlElement* parent);
+        bool parse(ConfigFile* config, const TiXmlElement* parent);
     };
 
     Collection<Level> mLevels;
@@ -89,4 +95,5 @@ private:
     Collection<Material> mMaterials;
     Collection<Mesh> mMeshes;
     Collection<Shader> mShaders;
+    std::unordered_map<char, std::string> mLevelMeshes;
 };

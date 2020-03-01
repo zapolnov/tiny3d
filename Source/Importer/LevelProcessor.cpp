@@ -2,6 +2,7 @@
 #include "LevelMeshBuilder.h"
 #include "Util.h"
 #include "Game/Level.h"
+#include <glm/gtc/matrix_transform.hpp>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
@@ -50,19 +51,6 @@ bool LevelProcessor::process(const ConfigFile::Level& level)
     std::vector<LevelStaticMesh> staticMeshes;
     std::vector<std::string> staticMeshIds;
 
-    auto addStaticMesh = [this, &staticMeshes, &staticMeshIds](int x, int y, std::string id) -> bool {
-            if (!mConfig.meshWithId(id))
-                return false;
-
-            LevelStaticMesh mesh;
-            mesh.x = x;
-            mesh.y = y;
-            staticMeshes.emplace_back(std::move(mesh));
-            staticMeshIds.emplace_back(std::move(id));
-
-            return true;
-        };
-
     char line[1024];
     int y = 0;
     while (fgets(line, sizeof(line), f)) {
@@ -102,19 +90,29 @@ bool LevelProcessor::process(const ConfigFile::Level& level)
                     playerStartY = y;
                     break;
 
-                case '^':
-                    mCxx << " true,";
-                    meshBuilder.createFloor(x, y);
-                    if (!addStaticMesh(x, y, "jarMesh")) {
+                default: {
+                    auto mesh = mConfig.meshForLevelChar(line[x]);
+                    if (mesh != nullptr) {
+                        mCxx << " true,";
+                        meshBuilder.createFloor(x, y);
+
+                        glm::mat4 m = glm::mat4(1.0f);
+                        m = glm::translate(m, mesh->translate + glm::vec3(x, LevelHeight - y - 1, 0.0f));
+                        m = glm::rotate(m, mesh->rotate.x, glm::vec3(1.0f, 0.0f, 0.0f));
+                        m = glm::rotate(m, mesh->rotate.y, glm::vec3(0.0f, 1.0f, 0.0f));
+                        m = glm::rotate(m, mesh->rotate.z, glm::vec3(0.0f, 0.0f, 1.0f));
+                        m = glm::scale(m, mesh->scale);
+
+                        LevelStaticMesh levelMesh;
+                        levelMesh.matrix = m;
+                        staticMeshes.emplace_back(std::move(levelMesh));
+                        staticMeshIds.emplace_back(mesh->id);
+                    } else {
+                        fprintf(stderr, "Error in file \"%s\": unknown character '%c'.\n", level.file.c_str(), line[x]);
                         fclose(f);
                         return false;
                     }
-                    break;
-
-                default:
-                    fprintf(stderr, "Error in file \"%s\": unknown character '%c'.\n", level.file.c_str(), line[x]);
-                    fclose(f);
-                    return false;
+                }
             }
         }
 
@@ -147,7 +145,12 @@ bool LevelProcessor::process(const ConfigFile::Level& level)
     mCxx << "    const LevelStaticMesh " << level.id << "StaticMeshes[] = {\n";
     size_t index = 0;
     for (const auto& mesh : staticMeshes) {
-        mCxx << "        { " << mesh.x << ", " << mesh.y << ", &Meshes::" << staticMeshIds[index] << " },\n";
+        mCxx << "        { { ";
+        for (int y = 0; y < 4; y++) {
+            for (int x = 0; x < 4; x++)
+                mCxx << mesh.matrix[y][x] << ", ";
+        }
+        mCxx << "}, &Meshes::" << staticMeshIds[index] << " },\n";
         ++index;
     }
     mCxx << "    };\n\n";
