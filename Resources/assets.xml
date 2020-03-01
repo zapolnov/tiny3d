@@ -6,6 +6,7 @@
     <shader id="levelShader" file="Shaders/Level.metal" />
 
     <texture id="dungeonTileset" file="Textures/dungeon.png" />
+    <texture id="characterTexture" file="Meshes/AnimatedCharacters2/skaterMaleA.png" />
     <texture id="jarMeshTexture" file="Meshes/CutePropModels/jar.png" />
 
     <material id="jarMesh">
@@ -16,6 +17,15 @@
     <mesh id="jarMesh" file="Meshes/CutePropModels/jar.obj">
         <useMaterial id="jarMesh" forId="DefaultMaterial" />
         <useInLevel asChar="^" tX="0.5" tY="0.5" rX="90" sX="0.4" sY="0.2" sZ="0.4" />
+    </mesh>
+
+    <material id="character">
+        <useShader id="defaultShader" />
+        <useTexture id="characterTexture" />
+    </material>
+
+    <mesh id="character" file="Meshes/AnimatedCharacters2/characterMedium.fbx" loadSkeleton="true">
+        <useMaterial id="character" forId="skin" />
     </mesh>
 
 </assets>
