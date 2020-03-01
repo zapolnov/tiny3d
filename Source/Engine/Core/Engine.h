@@ -5,6 +5,7 @@
 
 class IGame;
 class IRenderDevice;
+class InputManager;
 class ResourceManager;
 
 class Engine
@@ -15,11 +16,13 @@ public:
 
     IRenderDevice* renderDevice() const { return mRenderDevice; }
     ResourceManager* resourceManager() const { return mResourceManager.get(); }
+    InputManager* inputManager() const { return mInputManager.get(); }
 
     void doOneFrame();
 
 private:
     IRenderDevice* mRenderDevice;
+    std::unique_ptr<InputManager> mInputManager;
     std::unique_ptr<ResourceManager> mResourceManager;
     std::unique_ptr<IGame> mGame;
     std::chrono::time_point<std::chrono::high_resolution_clock> mPrevTime;

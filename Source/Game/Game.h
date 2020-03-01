@@ -23,6 +23,9 @@ private:
     std::unique_ptr<Level> mLevel;
     std::shared_ptr<AnimatedMesh> mPlayerMesh;
     glm::vec3 mPlayerPos;
+    glm::vec3 mPlayerTarget;
+    float mPlayerRotation;
+    bool mPlayerMoving;
 
     void loadLevel(const LevelData* level);
 };

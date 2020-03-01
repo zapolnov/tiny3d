@@ -2,10 +2,12 @@
 #include "Engine/Renderer/IRenderDevice.h"
 #include "Engine/Core/IGame.h"
 #include "Engine/ResMgr/ResourceManager.h"
+#include "Engine/Input/InputManager.h"
 
 Engine::Engine(IRenderDevice* renderDevice, std::function<IGame*(Engine*)> gameFactory)
     : mRenderDevice(renderDevice)
 {
+    mInputManager.reset(new InputManager(this));
     mResourceManager.reset(new ResourceManager(this));
     mGame.reset(gameFactory(this));
     mPrevTime = std::chrono::high_resolution_clock::now();

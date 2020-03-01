@@ -21,6 +21,9 @@ add(STATIC_LIBRARY
         Core/Engine.cpp
         Core/Engine.h
         Core/IGame.h
+        Input/InputManager.cpp
+        Input/InputManager.h
+        Input/Key.h
         Math/Camera.cpp
         Math/Camera.h
         Math/PerspectiveCamera.cpp
@@ -50,7 +53,8 @@ if(APPLE)
     find_library(APPKIT AppKit)
     find_library(METAL Metal)
     find_library(METALKIT MetalKit)
-    target_link_libraries(engine PUBLIC ${LIBOBJC} ${APPKIT} ${METALKIT} ${METAL})
+    find_library(CARBON Carbon)
+    target_link_libraries(engine PUBLIC ${LIBOBJC} ${APPKIT} ${METALKIT} ${METAL} ${CARBON})
 else()
     set_source_files_properties(${src_macos} PROPERTIES HEADER_FILE_ONLY TRUE)
 endif()

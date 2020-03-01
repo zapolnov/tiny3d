@@ -24,6 +24,7 @@
 
     ViewController* controller = [[ViewController alloc] initWithContentRect:rect];
     [window setContentViewController:controller];
+    [window makeFirstResponder:controller];
 
     [window makeKeyAndOrderFront:self];
 }
