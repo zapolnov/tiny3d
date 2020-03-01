@@ -89,6 +89,44 @@ bool ConfigFile::Mesh::parse(ConfigFile* config, const TiXmlElement* e)
         materialMapping[oldMaterialId] = std::move(newMaterialId);
     }
 
+    tag = "animations";
+    for (const TiXmlElement* ee = e->FirstChildElement(tag); ee; ee = ee->NextSiblingElement(tag)) {
+        MeshAnimations anim;
+        anim.file = file;
+
+        const char* customFile = ee->Attribute("file");
+        if (customFile)
+            anim.file = customFile;
+
+        const char* innerTag = "ignore";
+        for (const TiXmlElement* ignoreE = ee->FirstChildElement(innerTag); ignoreE; ignoreE = ignoreE->NextSiblingElement(innerTag)) {
+            std::string id;
+            if (!mandatoryAttribute(ignoreE, "id", id))
+                return false;
+            anim.ignore.emplace(std::move(id));
+        }
+
+        innerTag = "use";
+        for (const TiXmlElement* useE = ee->FirstChildElement(innerTag); useE; useE = useE->NextSiblingElement(innerTag)) {
+            std::string newId;
+            if (!mandatoryAttribute(useE, "id", newId))
+                return false;
+
+            std::string oldId;
+            if (!mandatoryAttribute(useE, "forId", oldId))
+                return false;
+
+            if (anim.rename.find(oldId) != anim.rename.end()) {
+                fprintf(stderr, "Duplicate mapping for animation id \"%s\".\n", oldId.c_str());
+                return false;
+            }
+
+            anim.rename[oldId] = std::move(newId);
+        }
+
+        animations.emplace_back(std::move(anim));
+    }
+
     rotate = glm::vec3(0.0f);
     translate = glm::vec3(0.0f);
     scale = glm::vec3(1.0f);

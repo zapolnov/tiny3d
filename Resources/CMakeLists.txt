@@ -5,6 +5,8 @@ file(GLOB_RECURSE meshes RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" CONFIGURE_DEPEND
 file(GLOB_RECURSE shaders RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" CONFIGURE_DEPENDS Shaders/*)
 
 set(gen
+    Compiled/Animations.cpp
+    Compiled/Animations.h
     Compiled/Levels.cpp
     Compiled/Levels.h
     Compiled/Shaders.cpp

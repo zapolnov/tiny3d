@@ -26,6 +26,10 @@
 
     <mesh id="character" file="Meshes/AnimatedCharacters2/characterMedium.fbx" loadSkeleton="true">
         <useMaterial id="character" forId="skin" />
+        <animations file="Meshes/AnimatedCharacters2/idle.fbx">
+            <ignore id="AnimStack::Root|0.Targeting Pose" />
+            <use id="characterIdle" forId="AnimStack::Root|Idle" />
+        </animations>
     </mesh>
 
 </assets>

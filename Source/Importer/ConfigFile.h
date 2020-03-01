@@ -2,6 +2,7 @@
 #include <glm/vec3.hpp>
 #include <functional>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include <string>
 
@@ -38,11 +39,19 @@ public:
         bool parse(ConfigFile* config, const TiXmlElement* e);
     };
 
+    struct MeshAnimations
+    {
+        std::string file;
+        std::unordered_map<std::string, std::string> rename;
+        std::unordered_set<std::string> ignore;
+    };
+
     struct Mesh
     {
         std::string id;
         std::string file;
         std::unordered_map<std::string, std::string> materialMapping;
+        std::vector<MeshAnimations> animations;
         glm::vec3 rotate;
         glm::vec3 translate;
         glm::vec3 scale;

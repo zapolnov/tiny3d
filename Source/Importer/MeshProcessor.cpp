@@ -1,5 +1,4 @@
 #include "MeshProcessor.h"
-#include "Engine/Mesh/MeshData.h"
 #include "Util.h"
 #include <assimp/Importer.hpp>
 #include <assimp/IOStream.hpp>
@@ -49,6 +48,18 @@ MeshProcessor::MeshProcessor(const ConfigFile& config)
     mCxx << "namespace Meshes\n";
     mCxx << "{\n";
     mCxx << std::endl;
+
+    mAnimHdr << "#pragma once\n";
+    mAnimHdr << "#include \"Engine/Mesh/MeshData.h\"\n";
+    mAnimHdr << std::endl;
+    mAnimHdr << "namespace Animations\n";
+    mAnimHdr << "{\n";
+
+    mAnimCxx << "#include \"Animations.h\"\n";
+    mAnimCxx << std::endl;
+    mAnimCxx << "namespace Animations\n";
+    mAnimCxx << "{\n";
+    mAnimCxx << std::endl;
 }
 
 MeshProcessor::~MeshProcessor()
@@ -59,10 +70,17 @@ bool MeshProcessor::generate()
 {
     mHdr << "}\n";
     mCxx << "}\n";
+    mAnimHdr << "}\n";
+    mAnimCxx << "}\n";
 
     if (!writeTextFile("Compiled/Meshes.cpp", std::move(mCxx)))
         return false;
     if (!writeTextFile("Compiled/Meshes.h", std::move(mHdr)))
+        return false;
+
+    if (!writeTextFile("Compiled/Animations.cpp", std::move(mAnimCxx)))
+        return false;
+    if (!writeTextFile("Compiled/Animations.h", std::move(mAnimHdr)))
         return false;
 
     return true;
@@ -257,6 +275,10 @@ bool MeshProcessor::process(const ConfigFile::Mesh& mesh)
         materialIds.emplace_back(std::move(materialId));
     }
 
+    mAnimations.clear();
+    for (const auto& anim : mesh.animations)
+        loadAnimations(anim);
+
     mCxx << "    static const MeshVertex " << mesh.id << "Vertices[] = {\n";
     for (const auto& vertex : vertices) {
         mCxx << "        { { ";
@@ -323,6 +345,62 @@ bool MeshProcessor::process(const ConfigFile::Mesh& mesh)
         mCxx << "    };\n\n";
     }
 
+    for (const auto& it : mAnimations) {
+        mAnimHdr << "    extern const MeshAnimation " << it.first << ";\n";
+
+        for (const auto& jt : it.second.bones) {
+            if (!jt.positionKeys.empty()) {
+                mAnimCxx << "    static const MeshPositionKey " << it.first << "Positions_" << jt.name << "[] = {\n";
+                for (const auto& key : jt.positionKeys)
+                    mAnimCxx << "        { " << key.time << ", { " << key.position.x << ", " << key.position.y << ", " << key.position.z << " } },\n";
+                mAnimCxx << "    };\n\n";
+            }
+
+            if (!jt.rotationKeys.empty()) {
+                mAnimCxx << "    static const MeshRotationKey " << it.first << "Rotations_" << jt.name << "[] = {\n";
+                for (const auto& key : jt.rotationKeys)
+                    mAnimCxx << "        { " << key.time << ", { " << key.rotation.x << ", " << key.rotation.y << ", " << key.rotation.z << ", " << key.rotation.w << " } },\n";
+                mAnimCxx << "    };\n\n";
+            }
+
+            if (!jt.scaleKeys.empty()) {
+                mAnimCxx << "    static const MeshScaleKey " << it.first << "Scale_" << jt.name << "[] = {\n";
+                for (const auto& key : jt.scaleKeys)
+                    mAnimCxx << "        { " << key.time << ", { " << key.scale.x << ", " << key.scale.y << ", " << key.scale.z << " } },\n";
+                mAnimCxx << "    };\n\n";
+            }
+        }
+
+        mAnimCxx << "    static const MeshBoneAnimation " << it.first << "BoneAnimations[] = {\n";
+        for (const auto& jt : it.second.bones) {
+            mAnimCxx << "        {\n";
+
+            if (!jt.positionKeys.empty())
+                mAnimCxx << "            /* positionKeys = */ " << it.first << "Positions_" << jt.name << ",\n";
+            else
+                mAnimCxx << "            /* positionKeys = */ nullptr,\n";
+
+            if (!jt.rotationKeys.empty())
+                mAnimCxx << "            /* rotationKeys = */ " << it.first << "Rotations_" << jt.name << ",\n";
+            else
+                mAnimCxx << "            /* rotationKeys = */ nullptr,\n";
+
+            if (!jt.scaleKeys.empty())
+                mAnimCxx << "            /* scaleKeys = */ " << it.first << "Scale_" << jt.name << ",\n";
+            else
+                mAnimCxx << "            /* scaleKeys = */ nullptr,\n";
+
+            mAnimCxx << "        },\n";
+        }
+        mAnimCxx << "    };\n\n";
+
+        mAnimCxx << "    const MeshAnimation " << it.first << " = {\n";
+        mAnimCxx << "        /* durationInTicks = */ " << it.second.info.durationInTicks << ",\n";
+        mAnimCxx << "        /* ticksPerSecond = */ " << it.second.info.ticksPerSecond << ",\n";
+        mAnimCxx << "        /* boneAnimations = */ " << it.first << "BoneAnimations,\n";
+        mAnimCxx << "    };\n\n";
+    }
+
     mCxx << "    static const MeshMaterial " << mesh.id << "Materials[] = {\n";
     size_t i = 0;
     for (const auto& material : materials) {
@@ -378,4 +456,79 @@ void MeshProcessor::readBoneHierarchy(const aiNode* rootNode, size_t parentBoneI
 
     for (size_t i = 0; i < rootNode->mNumChildren; i++)
         readBoneHierarchy(rootNode->mChildren[i], boneIndex);
+}
+
+bool MeshProcessor::loadAnimations(const ConfigFile::MeshAnimations& anim)
+{
+    const aiScene* scene = nullptr;
+    const unsigned flags =
+        aiProcess_RemoveRedundantMaterials |
+        0;
+
+    Assimp::Importer importer;
+    scene = importer.ReadFile(anim.file, flags);
+    if (!scene) {
+        fprintf(stderr, "Unable to load file \"%s\": %s\n", anim.file.c_str(), importer.GetErrorString());
+        return false;
+    }
+
+    for (size_t i = 0; i < scene->mNumAnimations; i++) {
+        const aiAnimation* sceneAnimation = scene->mAnimations[i];
+
+        std::string animationName(sceneAnimation->mName.data, sceneAnimation->mName.length);
+        if (anim.ignore.find(animationName) != anim.ignore.end())
+            continue;
+        auto it = anim.rename.find(animationName);
+        if (it != anim.rename.end())
+            animationName = it->second;
+
+        Anim animItem;
+        animItem.info.durationInTicks = float(sceneAnimation->mDuration);
+        animItem.info.ticksPerSecond = float(sceneAnimation->mTicksPerSecond);
+        animItem.bones.resize(mBoneList.size());
+
+        for (size_t j = 0; j < sceneAnimation->mNumChannels; j++) {
+            const aiNodeAnim* channel = sceneAnimation->mChannels[j];
+
+            std::string boneName{channel->mNodeName.data, channel->mNodeName.length};
+            auto it = mBoneMap.find(boneName);
+            if (it == mBoneMap.end()) {
+                fprintf(stderr, "Unknown bone \"%s\" in file \"%s\".\n", boneName.c_str(), anim.file.c_str());
+                return false;
+            }
+
+            BoneAnim& boneAnim = animItem.bones[it->second];
+            boneAnim.name = boneName;
+
+            boneAnim.positionKeys.reserve(channel->mNumPositionKeys);
+            for (size_t k = 0; k < channel->mNumPositionKeys; k++) {
+                const aiVectorKey& key = channel->mPositionKeys[k];
+                glm::vec3 position(key.mValue.x, key.mValue.y, key.mValue.z);
+                boneAnim.positionKeys.emplace_back(MeshPositionKey{float(key.mTime), position});
+            }
+
+            boneAnim.rotationKeys.reserve(channel->mNumRotationKeys);
+            for (size_t k = 0; k < channel->mNumRotationKeys; k++) {
+                const aiQuatKey& key = channel->mRotationKeys[k];
+                glm::quat rotation(key.mValue.w, key.mValue.x, key.mValue.y, key.mValue.z);
+                boneAnim.rotationKeys.emplace_back(MeshRotationKey{float(key.mTime), rotation});
+            }
+
+            boneAnim.scaleKeys.reserve(channel->mNumScalingKeys);
+            for (size_t k = 0; k < channel->mNumScalingKeys; k++) {
+                const aiVectorKey& key = channel->mScalingKeys[k];
+                glm::vec3 scale(key.mValue.x, key.mValue.y, key.mValue.z);
+                boneAnim.scaleKeys.emplace_back(MeshScaleKey{float(key.mTime), scale});
+            }
+        }
+
+        if (mAnimations.find(animationName) != mAnimations.end()) {
+            fprintf(stderr, "Duplicate animation id \"%s\" in file \"%s\".\n", animationName.c_str(), anim.file.c_str());
+            return false;
+        }
+
+        mAnimations[animationName] = std::move(animItem);
+    }
+
+    return true;
 }

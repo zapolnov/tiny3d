@@ -3,6 +3,7 @@
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <cstdint>
 
 struct MaterialData;
@@ -45,6 +46,38 @@ struct MeshBone
 struct MeshSkeleton
 {
     glm::mat4 globalInverseTransform;
+};
+
+struct MeshPositionKey
+{
+    float time;
+    glm::vec3 position;
+};
+
+struct MeshRotationKey
+{
+    float time;
+    glm::quat rotation;
+};
+
+struct MeshScaleKey
+{
+    float time;
+    glm::vec3 scale;
+};
+
+struct MeshBoneAnimation
+{
+    const MeshPositionKey* positionKeys;
+    const MeshRotationKey* rotationKeys;
+    const MeshScaleKey* scaleKeys;
+};
+
+struct MeshAnimation
+{
+    float durationInTicks;
+    float ticksPerSecond;
+    const MeshBoneAnimation* boneAnimations;
 };
 
 struct MeshMaterial
