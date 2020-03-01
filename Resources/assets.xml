@@ -7,7 +7,7 @@
     <shader id="levelShader" file="Shaders/Level.metal" />
 
     <texture id="dungeonTileset" file="Textures/dungeon.png" />
-    <texture id="characterTexture" file="Meshes/AnimatedCharacters2/skaterMaleA.png" />
+    <texture id="characterTexture" file="Meshes/AnimatedCharacters2/criminalMaleA.png" />
     <texture id="jarMeshTexture" file="Meshes/CutePropModels/jar.png" />
 
     <material id="levelMaterial" vertex="LevelVertex">

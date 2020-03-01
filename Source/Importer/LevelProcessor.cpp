@@ -93,7 +93,7 @@ bool LevelProcessor::process(const ConfigFile::Level& level)
                 default: {
                     auto mesh = mConfig.meshForLevelChar(line[x]);
                     if (mesh != nullptr) {
-                        mCxx << " true,";
+                        mCxx << " false,";
                         meshBuilder.createFloor(x, y);
 
                         glm::mat4 m = glm::mat4(1.0f);

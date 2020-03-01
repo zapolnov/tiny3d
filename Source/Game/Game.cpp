@@ -84,7 +84,7 @@ void Game::update(float frameTime)
 
     mCamera.setSize(mEngine->renderDevice()->viewportSize());
     mCamera.setUpVector(glm::vec3(0.0f, -1.0f, 0.0f));
-    mCamera.setPosition(mPlayerPos + glm::vec3(0.0f, 1.0f, 5.0f));
+    mCamera.setPosition(mPlayerPos + glm::vec3(0.0f, 4.0f, 6.0f));
     mCamera.setTarget(mPlayerPos);
 }
 
