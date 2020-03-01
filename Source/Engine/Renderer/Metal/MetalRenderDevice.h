@@ -28,6 +28,9 @@ public:
     void setPipelineState(const std::unique_ptr<IPipelineState>& state) override;
     void setVertexBuffer(int index, const std::unique_ptr<IRenderBuffer>& state, unsigned offset) override;
 
+    void setLightPosition(const glm::vec3& position) override;
+    void setAmbientColor(const glm::vec4& color) override;
+
     void drawPrimitive(PrimitiveType type, unsigned start, unsigned count) override;
     void drawIndexedPrimitive(PrimitiveType type, const std::unique_ptr<IRenderBuffer>& indexBuffer, unsigned start, unsigned count) override;
 
@@ -43,7 +46,8 @@ private:
     id<MTLCommandBuffer> mCommandBuffer;
     id<MTLDepthStencilState> mDepthStencilState;
     id<MTLRenderCommandEncoder> mCommandEncoder;
-    CameraUniforms mCameraUniforms;
+    VertexUniforms mVertexUniforms;
+    FragmentUniforms mFragmentUniforms;
     MTLViewport mViewport;
 
     void bindUniforms();

@@ -9,6 +9,7 @@
     <texture id="dungeonTileset" file="Textures/dungeon.png" />
     <texture id="characterTexture" file="Meshes/AnimatedCharacters2/criminalMaleA.png" />
     <texture id="jarMeshTexture" file="Meshes/CutePropModels/jar.png" />
+    <texture id="jarMeshNormalMap" file="Meshes/CutePropModels/NormalMap.png" />
 
     <material id="levelMaterial" vertex="LevelVertex">
         <useShader id="levelShader" />
@@ -18,11 +19,12 @@
     <material id="jarMesh">
         <useShader id="defaultShader" />
         <useTexture id="jarMeshTexture" />
+        <useTexture id="jarMeshNormalMap" />
     </material>
 
     <mesh id="jarMesh" file="Meshes/CutePropModels/jar.obj">
         <useMaterial id="jarMesh" forId="DefaultMaterial" />
-        <useInLevel asChar="^" rX="90" sX="0.4" sY="0.2" sZ="0.4" />
+        <useInLevel asChar="^" rX="90" sX="0.4" sY="0.4" sZ="0.4" />
     </mesh>
 
     <material id="character" vertex="MeshSkinningVertex">

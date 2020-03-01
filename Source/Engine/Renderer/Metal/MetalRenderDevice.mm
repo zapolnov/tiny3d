@@ -6,6 +6,9 @@
 #import "Engine/Renderer/VertexFormat.h"
 #import "Engine/Renderer/TextureData.h"
 #import "Engine/Renderer/ShaderCode.h"
+#import <glm/gtc/matrix_inverse.hpp>
+#import <glm/mat3x3.hpp>
+#import <glm/mat3x4.hpp>
 #import <cassert>
 
 MetalRenderDevice::MetalRenderDevice(MTKView* view)
@@ -20,10 +23,16 @@ MetalRenderDevice::MetalRenderDevice(MTKView* view)
     depthDesc.depthWriteEnabled = YES;
     mDepthStencilState = [mDevice newDepthStencilStateWithDescriptor:depthDesc];
 
-    const glm::mat4 identity = glm::mat4(1.0f);
-    memcpy(&mCameraUniforms.projectionMatrix, &identity[0][0], 16 * sizeof(float));
-    memcpy(&mCameraUniforms.viewMatrix, &identity[0][0], 16 * sizeof(float));
-    memcpy(&mCameraUniforms.modelMatrix, &identity[0][0], 16 * sizeof(float));
+    const glm::mat4 identity4 = glm::mat4(1.0f);
+    const glm::mat3x4 identity3 = glm::mat3x4(1.0f);
+    memcpy(&mVertexUniforms.projectionMatrix, &identity4[0][0], 16 * sizeof(float));
+    memcpy(&mVertexUniforms.viewMatrix, &identity4[0][0], 16 * sizeof(float));
+    memcpy(&mVertexUniforms.modelMatrix, &identity4[0][0], 16 * sizeof(float));
+    memcpy(&mVertexUniforms.normalMatrix, &identity3[0][0], 12 * sizeof(float));
+    memset(&mVertexUniforms.lightPosition, 0, 3 * sizeof(float));
+
+    const glm::vec4 ambient = glm::vec4(0.0f);
+    memcpy(&mFragmentUniforms.ambientColor, &ambient[0], 4 * sizeof(float));
 }
 
 MetalRenderDevice::~MetalRenderDevice()
@@ -112,17 +121,20 @@ std::unique_ptr<IPipelineState> MetalRenderDevice::createPipelineState(const std
 
 void MetalRenderDevice::setProjectionMatrix(const glm::mat4& matrix)
 {
-    memcpy(&mCameraUniforms.projectionMatrix, &matrix[0][0], 16 * sizeof(float));
+    memcpy(&mVertexUniforms.projectionMatrix, &matrix[0][0], 16 * sizeof(float));
 }
 
 void MetalRenderDevice::setViewMatrix(const glm::mat4& matrix)
 {
-    memcpy(&mCameraUniforms.viewMatrix, &matrix[0][0], 16 * sizeof(float));
+    memcpy(&mVertexUniforms.viewMatrix, &matrix[0][0], 16 * sizeof(float));
 }
 
 void MetalRenderDevice::setModelMatrix(const glm::mat4& matrix)
 {
-    memcpy(&mCameraUniforms.modelMatrix, &matrix[0][0], 16 * sizeof(float));
+    glm::mat3 normalMatrix = glm::mat3(matrix);
+    glm::mat3x4 transposedInvertedMatrix = glm::mat3x4(glm::transpose(glm::inverse(normalMatrix)));
+    memcpy(&mVertexUniforms.modelMatrix, &matrix[0][0], 16 * sizeof(float));
+    memcpy(&mVertexUniforms.normalMatrix, &transposedInvertedMatrix[0][0], 12 * sizeof(float));
 }
 
 void MetalRenderDevice::setTexture(int index, const std::unique_ptr<ITexture>& texture)
@@ -147,6 +159,16 @@ void MetalRenderDevice::setVertexBuffer(int index, const std::unique_ptr<IRender
     auto metalBuffer = static_cast<MetalRenderBuffer*>(buffer.get());
 
     [mCommandEncoder setVertexBuffer:metalBuffer->nativeBuffer() offset:offset atIndex:index];
+}
+
+void MetalRenderDevice::setLightPosition(const glm::vec3& position)
+{
+    memcpy(&mVertexUniforms.lightPosition, &position[0], 3 * sizeof(float));
+}
+
+void MetalRenderDevice::setAmbientColor(const glm::vec4& color)
+{
+    memcpy(&mFragmentUniforms.ambientColor, &color[0], 4 * sizeof(float));
 }
 
 static MTLPrimitiveType convertPrimitiveType(PrimitiveType type)
@@ -209,6 +231,8 @@ void MetalRenderDevice::endFrame()
 
 void MetalRenderDevice::bindUniforms()
 {
-    [mCommandEncoder setVertexBytes:&mCameraUniforms
-        length:sizeof(mCameraUniforms) atIndex:VertexInputIndex_CameraUniforms];
+    [mCommandEncoder setVertexBytes:&mVertexUniforms
+        length:sizeof(mVertexUniforms) atIndex:VertexInputIndex_VertexUniforms];
+    [mCommandEncoder setFragmentBytes:&mFragmentUniforms
+        length:sizeof(mFragmentUniforms) atIndex:VertexInputIndex_FragmentUniforms];
 }

@@ -25,10 +25,10 @@ struct FragmentInput
 vertex FragmentInput vertexShader(
     VertexInput in [[stage_in]],
     constant float4x4* matrices [[buffer(VertexInputIndex_SkinningMatrices)]],
-    constant CameraUniforms& cameraUniforms [[buffer(VertexInputIndex_CameraUniforms)]]
+    constant VertexUniforms& uniforms [[buffer(VertexInputIndex_VertexUniforms)]]
     )
 {
-    float4x4 viewProjectionMatrix = cameraUniforms.projectionMatrix * cameraUniforms.viewMatrix * cameraUniforms.modelMatrix;
+    float4x4 viewProjectionMatrix = uniforms.projectionMatrix * uniforms.viewMatrix * uniforms.modelMatrix;
 
     float4x4 boneTransform = matrices[in.boneIndices.x] * in.boneWeights.x;
     boneTransform += matrices[in.boneIndices.y] * in.boneWeights.y;

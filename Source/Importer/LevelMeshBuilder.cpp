@@ -29,6 +29,10 @@ void LevelMeshBuilder::generateCxxCode(const std::string& levelId, std::stringst
         ss << vertex.position.y << ", ";
         ss << vertex.position.z << ", ";
         ss << "}, { ";
+        ss << vertex.normal.x << ", ";
+        ss << vertex.normal.y << ", ";
+        ss << vertex.normal.z << ", ";
+        ss << "}, { ";
         ss << vertex.texCoord.x << ", ";
         ss << vertex.texCoord.y << ", ";
         ss << "} },\n";
@@ -55,28 +59,28 @@ void LevelMeshBuilder::createWall(float x, float y)
     createHorizontalSquare(x, y, 1.0f, 1, 1);
 
     createSquareIndices();
-    mVertices.emplace_back(LevelVertex{ { x1, y1, z1 }, makeTexCoord(4, 0, 0, 0) });
-    mVertices.emplace_back(LevelVertex{ { x2, y1, z1 }, makeTexCoord(4, 0, 1, 0) });
-    mVertices.emplace_back(LevelVertex{ { x2, y1, z2 }, makeTexCoord(4, 0, 1, 1) });
-    mVertices.emplace_back(LevelVertex{ { x1, y1, z2 }, makeTexCoord(4, 0, 0, 1) });
+    mVertices.emplace_back(LevelVertex{ { x1, y1, z1 }, { 0.0f, -1.0f, 0.0f }, makeTexCoord(4, 0, 0, 0) });
+    mVertices.emplace_back(LevelVertex{ { x2, y1, z1 }, { 0.0f, -1.0f, 0.0f }, makeTexCoord(4, 0, 1, 0) });
+    mVertices.emplace_back(LevelVertex{ { x2, y1, z2 }, { 0.0f, -1.0f, 0.0f }, makeTexCoord(4, 0, 1, 1) });
+    mVertices.emplace_back(LevelVertex{ { x1, y1, z2 }, { 0.0f, -1.0f, 0.0f }, makeTexCoord(4, 0, 0, 1) });
 
     createSquareIndices();
-    mVertices.emplace_back(LevelVertex{ { x1, y1, z1 }, makeTexCoord(4, 0, 0, 0) });
-    mVertices.emplace_back(LevelVertex{ { x1, y2, z1 }, makeTexCoord(4, 0, 1, 0) });
-    mVertices.emplace_back(LevelVertex{ { x1, y2, z2 }, makeTexCoord(4, 0, 1, 1) });
-    mVertices.emplace_back(LevelVertex{ { x1, y1, z2 }, makeTexCoord(4, 0, 0, 1) });
+    mVertices.emplace_back(LevelVertex{ { x1, y1, z1 }, { -1.0f, 0.0f, 0.0f }, makeTexCoord(4, 0, 0, 0) });
+    mVertices.emplace_back(LevelVertex{ { x1, y2, z1 }, { -1.0f, 0.0f, 0.0f }, makeTexCoord(4, 0, 1, 0) });
+    mVertices.emplace_back(LevelVertex{ { x1, y2, z2 }, { -1.0f, 0.0f, 0.0f }, makeTexCoord(4, 0, 1, 1) });
+    mVertices.emplace_back(LevelVertex{ { x1, y1, z2 }, { -1.0f, 0.0f, 0.0f }, makeTexCoord(4, 0, 0, 1) });
 
     createSquareIndices();
-    mVertices.emplace_back(LevelVertex{ { x1, y2, z1 }, makeTexCoord(4, 0, 0, 0) });
-    mVertices.emplace_back(LevelVertex{ { x2, y2, z1 }, makeTexCoord(4, 0, 1, 0) });
-    mVertices.emplace_back(LevelVertex{ { x2, y2, z2 }, makeTexCoord(4, 0, 1, 1) });
-    mVertices.emplace_back(LevelVertex{ { x1, y2, z2 }, makeTexCoord(4, 0, 0, 1) });
+    mVertices.emplace_back(LevelVertex{ { x1, y2, z1 }, { 0.0f, 1.0f, 0.0f }, makeTexCoord(4, 0, 0, 0) });
+    mVertices.emplace_back(LevelVertex{ { x2, y2, z1 }, { 0.0f, 1.0f, 0.0f }, makeTexCoord(4, 0, 1, 0) });
+    mVertices.emplace_back(LevelVertex{ { x2, y2, z2 }, { 0.0f, 1.0f, 0.0f }, makeTexCoord(4, 0, 1, 1) });
+    mVertices.emplace_back(LevelVertex{ { x1, y2, z2 }, { 0.0f, 1.0f, 0.0f }, makeTexCoord(4, 0, 0, 1) });
 
     createSquareIndices();
-    mVertices.emplace_back(LevelVertex{ { x2, y1, z1 }, makeTexCoord(4, 0, 0, 0) });
-    mVertices.emplace_back(LevelVertex{ { x2, y2, z1 }, makeTexCoord(4, 0, 1, 0) });
-    mVertices.emplace_back(LevelVertex{ { x2, y2, z2 }, makeTexCoord(4, 0, 1, 1) });
-    mVertices.emplace_back(LevelVertex{ { x2, y1, z2 }, makeTexCoord(4, 0, 0, 1) });
+    mVertices.emplace_back(LevelVertex{ { x2, y1, z1 }, { 1.0f, 0.0f, 0.0f }, makeTexCoord(4, 0, 0, 0) });
+    mVertices.emplace_back(LevelVertex{ { x2, y2, z1 }, { 1.0f, 0.0f, 0.0f }, makeTexCoord(4, 0, 1, 0) });
+    mVertices.emplace_back(LevelVertex{ { x2, y2, z2 }, { 1.0f, 0.0f, 0.0f }, makeTexCoord(4, 0, 1, 1) });
+    mVertices.emplace_back(LevelVertex{ { x2, y1, z2 }, { 1.0f, 0.0f, 0.0f }, makeTexCoord(4, 0, 0, 1) });
 }
 
 void LevelMeshBuilder::createSquareIndices()
@@ -94,8 +98,8 @@ void LevelMeshBuilder::createHorizontalSquare(float x, float y, float z, int til
 {
     float x1 = x - 0.5f, y1 = y - 0.5f, x2 = x1 + 1.0f, y2 = y1 + 1.0f;
     createSquareIndices();
-    mVertices.emplace_back(LevelVertex{ { x1, y1, z }, makeTexCoord(tileX, tileY, 0, 0) });
-    mVertices.emplace_back(LevelVertex{ { x2, y1, z }, makeTexCoord(tileX, tileY, 1, 0) });
-    mVertices.emplace_back(LevelVertex{ { x2, y2, z }, makeTexCoord(tileX, tileY, 1, 1) });
-    mVertices.emplace_back(LevelVertex{ { x1, y2, z }, makeTexCoord(tileX, tileY, 0, 1) });
+    mVertices.emplace_back(LevelVertex{ { x1, y1, z }, { 0.0f, 0.0f, 1.0f }, makeTexCoord(tileX, tileY, 0, 0) });
+    mVertices.emplace_back(LevelVertex{ { x2, y1, z }, { 0.0f, 0.0f, 1.0f }, makeTexCoord(tileX, tileY, 1, 0) });
+    mVertices.emplace_back(LevelVertex{ { x2, y2, z }, { 0.0f, 0.0f, 1.0f }, makeTexCoord(tileX, tileY, 1, 1) });
+    mVertices.emplace_back(LevelVertex{ { x1, y2, z }, { 0.0f, 0.0f, 1.0f }, makeTexCoord(tileX, tileY, 0, 1) });
 }

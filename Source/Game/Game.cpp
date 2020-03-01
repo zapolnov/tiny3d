@@ -16,7 +16,7 @@ Game::Game(Engine* engine)
     , mPlayerMoving(false)
 {
     mCamera.setFov(90.0f * 3.1415f / 180.0f);
-    mCamera.setZRange(1.0f, 100.0f);
+    mCamera.setZRange(0.1f, 20.0f);
 
     loadLevel(&Levels::level1);
 
@@ -83,9 +83,11 @@ void Game::update(float frameTime)
     mPlayerMesh->addTime(frameTime);
 
     mCamera.setSize(mEngine->renderDevice()->viewportSize());
-    mCamera.setUpVector(glm::vec3(0.0f, -1.0f, 0.0f));
-    mCamera.setPosition(mPlayerPos + glm::vec3(0.0f, 4.0f, 6.0f));
+    mCamera.setUpVector(glm::vec3(0.0f, 0.0f, 1.0f));
+    mCamera.setPosition(mPlayerPos + glm::vec3(0.0f, 2.0f, 3.0f));
     mCamera.setTarget(mPlayerPos);
+
+    mEngine->renderDevice()->setLightPosition(glm::vec3(mPlayerPos.x, mPlayerPos.y, mPlayerPos.z + 2.0f));
 }
 
 void Game::render()

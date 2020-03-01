@@ -37,6 +37,9 @@ public:
     virtual void setPipelineState(const std::unique_ptr<IPipelineState>& state) = 0;
     virtual void setVertexBuffer(int index, const std::unique_ptr<IRenderBuffer>& buffer, unsigned offset = 0) = 0;
 
+    virtual void setLightPosition(const glm::vec3& position) = 0;
+    virtual void setAmbientColor(const glm::vec4& color) = 0;
+
     virtual void drawPrimitive(PrimitiveType type, unsigned start, unsigned count) = 0;
     virtual void drawIndexedPrimitive(PrimitiveType type, const std::unique_ptr<IRenderBuffer>& indexBuffer, unsigned start, unsigned count) = 0;
 
