@@ -50,7 +50,7 @@ void LevelMeshBuilder::createFloor(float x, float y)
 void LevelMeshBuilder::createWall(float x, float y)
 {
     y = LevelHeight - y - 1;
-    float x1 = x, y1 = y, x2 = x + 1.0f, y2 = y + 1.0f, z1 = 0.0f, z2 = 1.0f;
+    float x1 = x - 0.5f, y1 = y - 0.5f, x2 = x1 + 1.0f, y2 = y1 + 1.0f, z1 = 0.0f, z2 = 1.0f;
 
     createHorizontalSquare(x, y, 1.0f, 1, 1);
 
@@ -92,7 +92,7 @@ void LevelMeshBuilder::createSquareIndices()
 
 void LevelMeshBuilder::createHorizontalSquare(float x, float y, float z, int tileX, int tileY)
 {
-    float x1 = x, y1 = y, x2 = x + 1.0f, y2 = y + 1.0f;
+    float x1 = x - 0.5f, y1 = y - 0.5f, x2 = x1 + 1.0f, y2 = y1 + 1.0f;
     createSquareIndices();
     mVertices.emplace_back(LevelVertex{ { x1, y1, z }, makeTexCoord(tileX, tileY, 0, 0) });
     mVertices.emplace_back(LevelVertex{ { x2, y1, z }, makeTexCoord(tileX, tileY, 1, 0) });

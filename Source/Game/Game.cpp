@@ -14,28 +14,45 @@ Game::Game(Engine* engine)
     mCamera.setFov(90.0f * 3.1415f / 180.0f);
     mCamera.setZRange(1.0f, 100.0f);
 
-    mLevel = std::make_unique<Level>(mEngine, &Levels::level1);
+    loadLevel(&Levels::level1);
 
     mPlayerMesh = engine->resourceManager()->cachedAnimatedMesh(&Meshes::character);
-    mPlayerMesh->setAnimation(&Animations::characterRun);
+    mPlayerMesh->setAnimation(&Animations::characterIdle);
 }
 
 Game::~Game()
 {
 }
 
-void Game::render()
+void Game::update(float frameTime)
 {
     mCamera.setSize(mEngine->renderDevice()->viewportSize());
-    mCamera.setPosition(glm::vec3(10, 10, 10));
-    mCamera.setTarget(glm::vec3(10, 10, 0));
+    mCamera.setUpVector(glm::vec3(0.0f, -1.0f, 0.0f));
+    mCamera.setPosition(mPlayerPos + glm::vec3(0.0f, 1.0f, 5.0f));
+    mCamera.setTarget(mPlayerPos);
 
+    mPlayerMesh->addTime(frameTime);
+}
+
+void Game::render()
+{
     mEngine->renderDevice()->setProjectionMatrix(mCamera.projectionMatrix());
     mEngine->renderDevice()->setViewMatrix(mCamera.viewMatrix());
 
     mLevel->render();
 
-    mEngine->renderDevice()->setModelMatrix(glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(2, 10, 0)), glm::vec3(0.01f)));
-    mPlayerMesh->addTime(1.0f);
+    // render character
+
+    glm::mat4 m = glm::mat4(1.0f);
+    m = glm::translate(m, mPlayerPos);
+    m = glm::rotate(m, 3.1415f * 0.5f, glm::vec3(1.0f, 0.0f, 0.0f));
+    m = glm::scale(m, glm::vec3(0.005f, 0.0025f, 0.005f));
+    mEngine->renderDevice()->setModelMatrix(m);
     mPlayerMesh->render();
+}
+
+void Game::loadLevel(const LevelData* level)
+{
+    mLevel = std::make_unique<Level>(mEngine, level);
+    mPlayerPos = glm::vec3(level->playerX, level->playerY, 0.0f);
 }

@@ -70,7 +70,6 @@ private:
 
     Engine* mEngine;
     bool mWalkable[LevelWidth * LevelHeight];
-    glm::vec2 mPlayerPos;
     std::unique_ptr<IRenderBuffer> mVertexBuffer;
     std::unique_ptr<IRenderBuffer> mIndexBuffer;
     std::shared_ptr<Material> mMaterial;

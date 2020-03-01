@@ -1,6 +1,7 @@
 #pragma once
 #include <functional>
 #include <memory>
+#include <chrono>
 
 class IGame;
 class IRenderDevice;
@@ -21,4 +22,5 @@ private:
     IRenderDevice* mRenderDevice;
     std::unique_ptr<ResourceManager> mResourceManager;
     std::unique_ptr<IGame> mGame;
+    std::chrono::time_point<std::chrono::high_resolution_clock> mPrevTime;
 };

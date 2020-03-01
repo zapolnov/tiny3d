@@ -112,7 +112,7 @@ void AnimatedMesh::calculatePose(float time) const
     }
 
     float ticksPerSecond = (mAnimation->ticksPerSecond > 0.0f ? mAnimation->ticksPerSecond : 25.0f);
-    float timeInTicks = fmodf(mTime / ticksPerSecond, mAnimation->durationInTicks);
+    float timeInTicks = fmodf(mTime * ticksPerSecond, mAnimation->durationInTicks);
 
     for (size_t boneIndex = 0; boneIndex < mBoneCount; boneIndex++) {
         const MeshBoneAnimation* anim = &mAnimation->boneAnimations[boneIndex];

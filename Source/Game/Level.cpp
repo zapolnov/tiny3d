@@ -17,7 +17,6 @@ Level::Level(Engine* engine, const LevelData* data)
     , mIndexCount(data->indexCount)
 {
     memcpy(mWalkable, data->walkable, LevelWidth * LevelHeight * sizeof(bool));
-    mPlayerPos = glm::vec2(data->playerX, data->playerY);
 
     mStaticObjects.reserve(data->staticMeshCount);
     for (size_t i = 0; i < data->staticMeshCount; i++) {

@@ -87,7 +87,7 @@ bool LevelProcessor::process(const ConfigFile::Level& level)
                         return false;
                     }
                     playerStartX = x;
-                    playerStartY = y;
+                    playerStartY = LevelHeight - y - 1;
                     break;
 
                 default: {
