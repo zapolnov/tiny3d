@@ -68,6 +68,9 @@ bool ConfigFile::Mesh::parse(ConfigFile* config, const TiXmlElement* e)
     if (!mandatoryAttribute(e, "file", file))
         return false;
 
+    const char* skeleton = e->Attribute("loadSkeleton");
+    loadSkeleton = (skeleton ? strcmp(skeleton, "true") == 0 : false);
+
     const char* tag = "useMaterial";
     for (const TiXmlElement* ee = e->FirstChildElement(tag); ee; ee = ee->NextSiblingElement(tag)) {
         std::string newMaterialId;

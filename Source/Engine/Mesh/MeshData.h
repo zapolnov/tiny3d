@@ -2,6 +2,7 @@
 #include "Engine/Renderer/VertexFormat.h"
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
 #include <cstdint>
 
 struct MaterialData;
@@ -26,6 +27,26 @@ struct MeshVertex
     }
 };
 
+struct MeshSkinningVertex
+{
+    float boneWeights[4] = {0};
+    uint8_t boneIndices[4] = {0};
+};
+
+struct MeshBone
+{
+    static const uint8_t InvalidIndex = -1;
+
+    const char* name = nullptr;
+    uint8_t parentIndex = InvalidIndex;
+    glm::mat4 matrix{1.0f};
+};
+
+struct MeshSkeleton
+{
+    glm::mat4 globalInverseTransform;
+};
+
 struct MeshMaterial
 {
     unsigned firstIndex;
@@ -36,9 +57,12 @@ struct MeshMaterial
 struct MeshData
 {
     const MeshVertex* vertices;
+    const MeshBone* bones;
+    const MeshSkinningVertex* skinningVertices;
     const uint16_t* indices;
     const MeshMaterial* materials;
     size_t vertexCount;
     size_t indexCount;
     size_t materialCount;
+    size_t boneCount;
 };

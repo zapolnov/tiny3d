@@ -46,6 +46,7 @@ public:
         glm::vec3 rotate;
         glm::vec3 translate;
         glm::vec3 scale;
+        bool loadSkeleton;
 
         static constexpr char Tag[] = "mesh";
         bool parse(ConfigFile* config, const TiXmlElement* e);
