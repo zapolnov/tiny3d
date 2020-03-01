@@ -17,7 +17,7 @@ Game::Game(Engine* engine)
     mLevel = std::make_unique<Level>(mEngine, &Levels::level1);
 
     mPlayerMesh = engine->resourceManager()->cachedAnimatedMesh(&Meshes::character);
-    mPlayerMesh->setAnimation(&Animations::characterIdle);
+    mPlayerMesh->setAnimation(&Animations::characterRun);
 }
 
 Game::~Game()
@@ -35,7 +35,7 @@ void Game::render()
 
     mLevel->render();
 
-    mEngine->renderDevice()->setModelMatrix(glm::translate(glm::mat4(1.0f), glm::vec3(2, 10, 0)));
-    mPlayerMesh->addTime(1.0f / 60.0f);
+    mEngine->renderDevice()->setModelMatrix(glm::scale(glm::translate(glm::mat4(1.0f), glm::vec3(2, 10, 0)), glm::vec3(0.01f)));
+    mPlayerMesh->addTime(1.0f);
     mPlayerMesh->render();
 }

@@ -13,7 +13,13 @@ public:
 
     id<MTLBuffer> nativeBuffer() const { return mBuffer; }
 
+    unsigned uploadData(const void* data) override;
+
 private:
     MetalRenderDevice* mDevice;
     id<MTLBuffer> mBuffer;
+    dispatch_semaphore_t mSemaphore;
+    size_t mSize;
+    size_t mAlignedSize;
+    unsigned mBufferIndex;
 };

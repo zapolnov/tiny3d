@@ -23,9 +23,10 @@ private:
     size_t mBoneCount;
     glm::mat4 mGlobalInverseTransform;
     std::unique_ptr<IRenderBuffer> mSkinningVertexBuffer;
+    std::unique_ptr<IRenderBuffer> mMatrixBuffer;
     std::unique_ptr<glm::mat4[]> mMatrices;
     const MeshAnimation* mAnimation;
     float mTime;
 
-    void calculatePose(float time, glm::mat4* matrices) const;
+    void calculatePose(float time) const;
 };

@@ -15,6 +15,7 @@ AnimatedMesh::AnimatedMesh(Engine* engine, const MeshData* data)
     , mAnimation(nullptr)
     , mTime(0.0f)
 {
+    mMatrixBuffer = mEngine->renderDevice()->createBuffer(mBoneCount * sizeof(glm::mat4));
     mSkinningVertexBuffer = mEngine->renderDevice()->createBufferWithData(
         data->skinningVertices, data->skinningVertexCount * sizeof(MeshSkinningVertex));
 }
@@ -48,6 +49,10 @@ void AnimatedMesh::setAnimation(const MeshAnimation* anim)
 void AnimatedMesh::render() const
 {
     mEngine->renderDevice()->setVertexBuffer(1, mSkinningVertexBuffer);
+
+    calculatePose(mTime);
+    unsigned bufferOffset = mMatrixBuffer->uploadData(mMatrices.get());
+    mEngine->renderDevice()->setVertexBuffer(2, mMatrixBuffer, bufferOffset);
 
     StaticMesh::render();
 }
@@ -98,11 +103,11 @@ template <class T> T interpolatedValue(float time, float duration, const T* keys
     return value;
 }
 
-void AnimatedMesh::calculatePose(float time, glm::mat4* matrices) const
+void AnimatedMesh::calculatePose(float time) const
 {
     if (!mAnimation) {
         for (size_t i = 0; i < mBoneCount; i++)
-            matrices[i] = mBones[i].matrix;
+            mMatrices[i] = mBones[i].matrix;
         return;
     }
 
@@ -144,12 +149,12 @@ void AnimatedMesh::calculatePose(float time, glm::mat4* matrices) const
             transform = mGlobalInverseTransform * transform;
         else {
             assert(parentBone < boneIndex);
-            transform = matrices[parentBone] * transform;
+            transform = mMatrices[parentBone] * transform;
         }
 
-        matrices[boneIndex] = transform;
+        mMatrices[boneIndex] = transform;
     }
 
     for (size_t boneIndex = 0; boneIndex < mBoneCount; boneIndex++)
-        matrices[boneIndex] *= mBones[boneIndex].matrix;
+        mMatrices[boneIndex] *= mBones[boneIndex].matrix;
 }

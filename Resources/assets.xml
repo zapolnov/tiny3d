@@ -31,6 +31,10 @@
             <ignore id="AnimStack::Root|0.Targeting Pose" />
             <use id="characterIdle" forId="AnimStack::Root|Idle" />
         </animations>
+        <animations file="Meshes/AnimatedCharacters2/run.fbx">
+            <ignore id="AnimStack::Root|0.Targeting Pose" />
+            <use id="characterRun" forId="AnimStack::Root|Run" />
+        </animations>
     </mesh>
 
 </assets>

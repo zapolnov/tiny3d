@@ -10,6 +10,7 @@ public:
     ~MetalRenderDevice();
 
     id<MTLDevice> nativeDevice() const { return mDevice; }
+    id<MTLCommandBuffer> nativeCommandBuffer() const { return mCommandBuffer; }
 
     glm::vec2 viewportSize() const override;
 

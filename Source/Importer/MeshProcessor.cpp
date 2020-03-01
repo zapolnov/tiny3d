@@ -368,7 +368,7 @@ bool MeshProcessor::process(const ConfigFile::Mesh& mesh)
             if (!jt.rotationKeys.empty()) {
                 mAnimCxx << "    static const MeshRotationKey " << it.first << "Rotations_" << jt.name << "[] = {\n";
                 for (const auto& key : jt.rotationKeys)
-                    mAnimCxx << "        { " << key.time << ", { " << key.rotation.x << ", " << key.rotation.y << ", " << key.rotation.z << ", " << key.rotation.w << " } },\n";
+                    mAnimCxx << "        { " << key.time << ", { " << key.rotation.w << ", " << key.rotation.x << ", " << key.rotation.y << ", " << key.rotation.z << " } },\n";
                 mAnimCxx << "    };\n\n";
             }
 
