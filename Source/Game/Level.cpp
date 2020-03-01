@@ -5,10 +5,10 @@
 #include "Engine/Renderer/IPipelineState.h"
 #include "Engine/Renderer/ITexture.h"
 #include "Engine/Renderer/IShaderProgram.h"
+#include "Engine/Mesh/Material.h"
 #include "Engine/Mesh/StaticMesh.h"
 #include "Engine/ResMgr/ResourceManager.h"
-#include "Compiled/Shaders.h"
-#include "Compiled/Textures.h"
+#include "Compiled/Materials.h"
 #include <vector>
 #include <cstring>
 
@@ -27,11 +27,9 @@ Level::Level(Engine* engine, const LevelData* data)
         mStaticObjects.emplace_back(std::move(obj));
     }
 
-    mShader = mEngine->renderDevice()->createShaderProgram(&Shaders::levelShader);
     mVertexBuffer = mEngine->renderDevice()->createBufferWithData(data->vertices, data->vertexCount * sizeof(LevelVertex));
     mIndexBuffer = mEngine->renderDevice()->createBufferWithData(data->indices, data->indexCount * sizeof(uint16_t));
-    mTilesetTexture = mEngine->renderDevice()->createTexture(&Textures::dungeonTileset);
-    mPipelineState = mEngine->renderDevice()->createPipelineState(mShader, LevelVertex::format());
+    mMaterial = mEngine->resourceManager()->cachedMaterial(&Materials::levelMaterial);
 }
 
 Level::~Level()
@@ -48,9 +46,9 @@ bool Level::isWalkable(int x, int y) const
 void Level::render() const
 {
     mEngine->renderDevice()->setModelMatrix(glm::mat4(1.0f));
-    mEngine->renderDevice()->setPipelineState(mPipelineState);
+
+    mMaterial->bind();
     mEngine->renderDevice()->setVertexBuffer(0, mVertexBuffer);
-    mEngine->renderDevice()->setTexture(0, mTilesetTexture);
     mEngine->renderDevice()->drawIndexedPrimitive(Triangles, mIndexBuffer, 0, mIndexCount);
 
     for (const auto& obj : mStaticObjects) {

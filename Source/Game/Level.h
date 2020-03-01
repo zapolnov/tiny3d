@@ -15,9 +15,7 @@ enum
 struct MeshData;
 class Engine;
 class StaticMesh;
-class IShaderProgram;
-class IPipelineState;
-class ITexture;
+class Material;
 class IRenderBuffer;
 
 struct LevelVertex
@@ -75,9 +73,7 @@ private:
     glm::vec2 mPlayerPos;
     std::unique_ptr<IRenderBuffer> mVertexBuffer;
     std::unique_ptr<IRenderBuffer> mIndexBuffer;
-    std::unique_ptr<IPipelineState> mPipelineState;
-    std::unique_ptr<ITexture> mTilesetTexture;
-    std::unique_ptr<IShaderProgram> mShader;
+    std::shared_ptr<Material> mMaterial;
     std::vector<StaticObject> mStaticObjects;
     size_t mIndexCount;
 };

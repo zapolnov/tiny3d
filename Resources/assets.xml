@@ -10,6 +10,11 @@
     <texture id="characterTexture" file="Meshes/AnimatedCharacters2/skaterMaleA.png" />
     <texture id="jarMeshTexture" file="Meshes/CutePropModels/jar.png" />
 
+    <material id="levelMaterial" vertex="LevelVertex">
+        <useShader id="levelShader" />
+        <useTexture id="dungeonTileset" />
+    </material>
+
     <material id="jarMesh">
         <useShader id="defaultShader" />
         <useTexture id="jarMeshTexture" />
