@@ -28,7 +28,7 @@ StaticMesh::~StaticMesh()
 
 void StaticMesh::render() const
 {
-    mEngine->renderDevice()->setVertexBuffer(mVertexBuffer);
+    mEngine->renderDevice()->setVertexBuffer(0, mVertexBuffer);
     for (const auto& e : mElements) {
         e.material->bind();
         mEngine->renderDevice()->drawIndexedPrimitive(Triangles, mIndexBuffer, e.firstIndex, e.indexCount);

@@ -84,12 +84,15 @@ std::unique_ptr<IPipelineState> MetalRenderDevice::createPipelineState(const std
         switch (attr.type) {
             case VertexType::Float2: vertexDesc.attributes[i].format = MTLVertexFormatFloat2; break;
             case VertexType::Float3: vertexDesc.attributes[i].format = MTLVertexFormatFloat3; break;
+            case VertexType::Float4: vertexDesc.attributes[i].format = MTLVertexFormatFloat4; break;
+            case VertexType::UByte4: vertexDesc.attributes[i].format = MTLVertexFormatUChar4; break;
         }
-        vertexDesc.attributes[i].bufferIndex = VertexInputIndex_Vertices;
+        vertexDesc.attributes[i].bufferIndex = attr.bufferIndex;
         vertexDesc.attributes[i].offset = attr.offset;
         ++i;
     }
-    vertexDesc.layouts[0].stride = vertexFormat.stride();
+    for (unsigned layoutIndex = 0; layoutIndex < vertexFormat.bufferCount(); layoutIndex++)
+        vertexDesc.layouts[layoutIndex].stride = vertexFormat.stride(layoutIndex);
 
     MTLRenderPipelineDescriptor* pipelineDesc = [[MTLRenderPipelineDescriptor alloc] init];
     pipelineDesc.vertexDescriptor = vertexDesc;
@@ -138,12 +141,12 @@ void MetalRenderDevice::setPipelineState(const std::unique_ptr<IPipelineState>& 
     [mCommandEncoder setRenderPipelineState:metalState->nativeState()];
 }
 
-void MetalRenderDevice::setVertexBuffer(const std::unique_ptr<IRenderBuffer>& buffer, unsigned offset)
+void MetalRenderDevice::setVertexBuffer(int index, const std::unique_ptr<IRenderBuffer>& buffer, unsigned offset)
 {
     assert(dynamic_cast<MetalRenderBuffer*>(buffer.get()) != nullptr);
     auto metalBuffer = static_cast<MetalRenderBuffer*>(buffer.get());
 
-    [mCommandEncoder setVertexBuffer:metalBuffer->nativeBuffer() offset:offset atIndex:VertexInputIndex_Vertices];
+    [mCommandEncoder setVertexBuffer:metalBuffer->nativeBuffer() offset:offset atIndex:index];
 }
 
 static MTLPrimitiveType convertPrimitiveType(PrimitiveType type)

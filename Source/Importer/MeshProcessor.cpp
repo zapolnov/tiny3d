@@ -324,6 +324,15 @@ bool MeshProcessor::process(const ConfigFile::Mesh& mesh)
     mCxx << "    };\n\n";
 
     if (mesh.loadSkeleton) {
+        mCxx << "    static const glm::mat4 " << mesh.id << "GlobalInverseTransform {\n";
+        for (int y = 0; y < 4; y++) {
+            mCxx << "       ";
+            for (int x = 0; x < 4; x++)
+                mCxx << " " << globalInverseTransform[y][x] << ",";
+            mCxx << std::endl;
+        }
+        mCxx << "    };\n\n";
+
         mCxx << "    static const MeshBone " << mesh.id << "Bones[] = {\n";
         size_t i = 0;
         for (const auto& bone : mBoneList) {
@@ -390,6 +399,9 @@ bool MeshProcessor::process(const ConfigFile::Mesh& mesh)
             else
                 mAnimCxx << "            /* scaleKeys = */ nullptr,\n";
 
+            mAnimCxx << "            /* positionKeyCount = */ " << jt.positionKeys.size() << ",\n";
+            mAnimCxx << "            /* rotationKeyCount = */ " << jt.rotationKeys.size() << ",\n";
+            mAnimCxx << "            /* scaleKeyCount = */ " << jt.scaleKeys.size() << ",\n";
             mAnimCxx << "        },\n";
         }
         mAnimCxx << "    };\n\n";
@@ -417,14 +429,17 @@ bool MeshProcessor::process(const ConfigFile::Mesh& mesh)
     mCxx << "        /* .vertices = */ " << mesh.id <<  "Vertices,\n";
     if (mesh.loadSkeleton) {
         mCxx << "        /* .bones = */ " << mesh.id <<  "Bones,\n";
+        mCxx << "        /* .globalInverseTransform = */ &" << mesh.id <<  "GlobalInverseTransform,\n";
         mCxx << "        /* .skinningVertices = */ " << mesh.id <<  "SkinningVertices,\n";
     } else {
         mCxx << "        /* .bones = */ nullptr,\n";
+        mCxx << "        /* .globalInverseTransform = */ nullptr,\n";
         mCxx << "        /* .skinningVertices = */ nullptr,\n";
     }
     mCxx << "        /* .indices = */ " << mesh.id <<  "Indices,\n";
     mCxx << "        /* .materials = */ " << mesh.id <<  "Materials,\n";
     mCxx << "        /* .vertexCount = */ " << vertices.size() << ",\n";
+    mCxx << "        /* .skinningVertexCount = */ " << skinningVertices.size() << ",\n";
     mCxx << "        /* .indexCount = */ " << indices.size() << ",\n";
     mCxx << "        /* .materialCount = */ " << materials.size() << ",\n";
     mCxx << "        /* .boneCount = */ " << mBoneList.size() << ",\n";

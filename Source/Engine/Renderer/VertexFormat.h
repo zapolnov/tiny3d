@@ -5,6 +5,8 @@ enum class VertexType
 {
     Float2,
     Float3,
+    Float4,
+    UByte4,
 };
 
 class VertexFormat
@@ -14,30 +16,38 @@ public:
     {
         VertexType type;
         unsigned offset;
+        int bufferIndex;
     };
 
     VertexFormat()
-        : mStride(0)
     {
     }
 
     const std::vector<Attribute>& attributes() const { return mAttributes; }
-    unsigned stride() const { return mStride; }
 
-    void addAttribute(VertexType type)
+    unsigned bufferCount() const { return mStride.size(); }
+    unsigned stride(int bufferIndex) const { return mStride[bufferIndex]; }
+
+    void addAttribute(VertexType type, int bufferIndex = 0)
     {
+        if (bufferIndex >= int(mStride.size()))
+            mStride.resize(bufferIndex + 1);
+
         Attribute attr;
         attr.type = type;
-        attr.offset = mStride;
+        attr.offset = mStride[bufferIndex];
+        attr.bufferIndex = bufferIndex;
         mAttributes.emplace_back(std::move(attr));
 
         switch (type) {
-            case VertexType::Float2: mStride += 2 * sizeof(float); break;
-            case VertexType::Float3: mStride += 3 * sizeof(float); break;
+            case VertexType::Float2: mStride[bufferIndex] += 2 * sizeof(float); break;
+            case VertexType::Float3: mStride[bufferIndex] += 3 * sizeof(float); break;
+            case VertexType::Float4: mStride[bufferIndex] += 4 * sizeof(float); break;
+            case VertexType::UByte4: mStride[bufferIndex] += 4; break;
         }
     }
 
 private:
     std::vector<Attribute> mAttributes;
-    unsigned mStride;
+    std::vector<unsigned> mStride;
 };

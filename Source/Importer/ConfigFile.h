@@ -34,6 +34,7 @@ public:
         std::string id;
         std::string shaderId;
         std::vector<std::string> textureIds;
+        std::string vertexFormat;
 
         static constexpr char Tag[] = "material";
         bool parse(ConfigFile* config, const TiXmlElement* e);

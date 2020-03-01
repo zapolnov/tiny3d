@@ -4,6 +4,7 @@
 enum VertexInputIndex
 {
     VertexInputIndex_Vertices = 0,
+    VertexInputIndex_SkinningVertices,
     VertexInputIndex_CameraUniforms,
 };
 

@@ -3,6 +3,7 @@
     <level id="level1" file="Levels/level1.txt" />
 
     <shader id="defaultShader" file="Shaders/Default.metal" />
+    <shader id="skinningShader" file="Shaders/Skinning.metal" />
     <shader id="levelShader" file="Shaders/Level.metal" />
 
     <texture id="dungeonTileset" file="Textures/dungeon.png" />
@@ -19,8 +20,8 @@
         <useInLevel asChar="^" tX="0.5" tY="0.5" rX="90" sX="0.4" sY="0.2" sZ="0.4" />
     </mesh>
 
-    <material id="character">
-        <useShader id="defaultShader" />
+    <material id="character" vertex="MeshSkinningVertex">
+        <useShader id="skinningShader" />
         <useTexture id="characterTexture" />
     </material>
 

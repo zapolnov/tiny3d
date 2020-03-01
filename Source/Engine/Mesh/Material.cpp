@@ -17,7 +17,7 @@ Material::Material(Engine* engine, const MaterialData* data)
     for (size_t i = 0; i < data->textureCount; i++)
         mTextures.emplace_back(mEngine->resourceManager()->cachedTexture(data->textures[i]));
 
-    mPipelineState = mEngine->renderDevice()->createPipelineState(mShader->instance(), MeshVertex::format());
+    mPipelineState = mEngine->renderDevice()->createPipelineState(mShader->instance(), data->vertexFormat());
 }
 
 Material::~Material()

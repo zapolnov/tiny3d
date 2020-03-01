@@ -32,6 +32,14 @@ struct MeshSkinningVertex
 {
     float boneWeights[4] = {0};
     uint8_t boneIndices[4] = {0};
+
+    static VertexFormat format()
+    {
+        VertexFormat fmt = MeshVertex::format();
+        fmt.addAttribute(VertexType::Float4, 1); // boneWeights
+        fmt.addAttribute(VertexType::UByte4, 1); // normal
+        return fmt;
+    }
 };
 
 struct MeshBone
@@ -71,6 +79,9 @@ struct MeshBoneAnimation
     const MeshPositionKey* positionKeys;
     const MeshRotationKey* rotationKeys;
     const MeshScaleKey* scaleKeys;
+    size_t positionKeyCount;
+    size_t rotationKeyCount;
+    size_t scaleKeyCount;
 };
 
 struct MeshAnimation
@@ -91,10 +102,12 @@ struct MeshData
 {
     const MeshVertex* vertices;
     const MeshBone* bones;
+    const glm::mat4* globalInverseTransform;
     const MeshSkinningVertex* skinningVertices;
     const uint16_t* indices;
     const MeshMaterial* materials;
     size_t vertexCount;
+    size_t skinningVertexCount;
     size_t indexCount;
     size_t materialCount;
     size_t boneCount;

@@ -11,11 +11,11 @@ class StaticMesh
 {
 public:
     StaticMesh(Engine* engine, const MeshData* data);
-    ~StaticMesh();
+    virtual ~StaticMesh();
 
-    void render() const;
+    virtual void render() const;
 
-private:
+protected:
     struct Element
     {
         unsigned firstIndex;

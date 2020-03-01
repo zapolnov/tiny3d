@@ -14,6 +14,8 @@ MaterialProcessor::MaterialProcessor(const ConfigFile& config)
     mCxx << "#include \"Materials.h\"\n";
     mCxx << "#include \"Shaders.h\"\n";
     mCxx << "#include \"Textures.h\"\n";
+    mCxx << "#include \"Engine/Mesh/MeshData.h\"\n";
+    mCxx << "#include \"Game/Level.h\"\n";
     mCxx << std::endl;
     mCxx << "namespace Materials\n";
     mCxx << "{\n";
@@ -37,6 +39,7 @@ bool MaterialProcessor::process(const ConfigFile::Material& material)
     mCxx << "        /* .textureCount = */ " << material.textureIds.size() <<  ",\n";
     mCxx << "        /* .textures = */ " << material.id << "Textures,\n";
     mCxx << "        /* .shader = */ &Shaders::" << material.shaderId << ",\n";
+    mCxx << "        /* .vertexFormat = */ &" << material.vertexFormat << "::format,\n";
     mCxx << "    };\n\n";
 
     return true;

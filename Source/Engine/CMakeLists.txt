@@ -25,6 +25,8 @@ add(STATIC_LIBRARY
         Math/Camera.h
         Math/PerspectiveCamera.cpp
         Math/PerspectiveCamera.h
+        Mesh/AnimatedMesh.cpp
+        Mesh/AnimatedMesh.h
         Mesh/Material.cpp
         Mesh/Material.h
         Mesh/MeshData.h

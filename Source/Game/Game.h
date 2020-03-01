@@ -5,6 +5,7 @@
 
 class Engine;
 class Level;
+class AnimatedMesh;
 
 class Game : public IGame
 {
@@ -18,4 +19,5 @@ private:
     Engine* mEngine;
     PerspectiveCamera mCamera;
     std::unique_ptr<Level> mLevel;
+    std::shared_ptr<AnimatedMesh> mPlayerMesh;
 };

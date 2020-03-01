@@ -3,6 +3,7 @@
 #include "Engine/ResMgr/Texture.h"
 #include "Engine/Mesh/Material.h"
 #include "Engine/Mesh/StaticMesh.h"
+#include "Engine/Mesh/AnimatedMesh.h"
 #include "Engine/Core/Engine.h"
 #include "Engine/Renderer/IRenderDevice.h"
 
@@ -52,6 +53,13 @@ std::shared_ptr<Texture> ResourceManager::cachedTexture(const TextureData* data)
 {
     return cachedObject(mTextures, data, [this, data] {
             return std::make_shared<Texture>(mEngine, mEngine->renderDevice()->createTexture(data));
+        });
+}
+
+std::shared_ptr<AnimatedMesh> ResourceManager::cachedAnimatedMesh(const MeshData* data)
+{
+    return cachedObject(mAnimatedMeshes, data, [this, data] {
+            return std::make_shared<AnimatedMesh>(mEngine, data);
         });
 }
 

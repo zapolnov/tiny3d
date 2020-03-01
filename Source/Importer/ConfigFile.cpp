@@ -48,6 +48,9 @@ bool ConfigFile::Texture::parse(ConfigFile* config, const TiXmlElement* e)
 
 bool ConfigFile::Material::parse(ConfigFile* config, const TiXmlElement* e)
 {
+    const char* fmt = e->Attribute("vertex");
+    vertexFormat = (fmt ? fmt : "MeshVertex");
+
     const TiXmlElement* ee = mandatoryElement(e, "useShader");
     if (!ee || !config->mShaders.parseReference(ee, shaderId))
         return false;

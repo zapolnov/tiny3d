@@ -49,7 +49,7 @@ void Level::render() const
 {
     mEngine->renderDevice()->setModelMatrix(glm::mat4(1.0f));
     mEngine->renderDevice()->setPipelineState(mPipelineState);
-    mEngine->renderDevice()->setVertexBuffer(mVertexBuffer);
+    mEngine->renderDevice()->setVertexBuffer(0, mVertexBuffer);
     mEngine->renderDevice()->setTexture(0, mTilesetTexture);
     mEngine->renderDevice()->drawIndexedPrimitive(Triangles, mIndexBuffer, 0, mIndexCount);
 
