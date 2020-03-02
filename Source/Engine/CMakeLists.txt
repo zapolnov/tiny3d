@@ -13,6 +13,8 @@ set(src_macos
     )
 
 set(src_vulkan
+    Renderer/Vulkan/VulkanCommon.cpp
+    Renderer/Vulkan/VulkanCommon.h
     Renderer/Vulkan/VulkanPipelineState.h
     Renderer/Vulkan/VulkanPipelineState.cpp
     Renderer/Vulkan/VulkanRenderBuffer.h

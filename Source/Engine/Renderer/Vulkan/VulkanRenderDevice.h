@@ -1,12 +1,15 @@
 #pragma once
 #include "Engine/Renderer/IRenderDevice.h"
-//#include "Shaders/ShaderTypes.h"
+#include "Engine/Renderer/Vulkan/VulkanCommon.h"
+#include <memory>
 
 class VulkanRenderDevice : public IRenderDevice
 {
 public:
     explicit VulkanRenderDevice(/*MTKView* view*/);
     ~VulkanRenderDevice();
+
+    bool initialized() const { return mInitialized; }
 
     //id<MTLDevice> nativeDevice() const { return mDevice; }
     //id<MTLCommandBuffer> nativeCommandBuffer() const { return mCommandBuffer; }
@@ -39,6 +42,15 @@ public:
     void endFrame() override;
 
 private:
+    bool mInitialized;
+    VkDevice mDevice;
+    VkSwapchainKHR mSwapChain;
+    VkQueue mPresentQueue;
+    VkCommandBuffer mSetupCommandBuffer;
+    VkCommandBuffer mDrawCommandBuffer;
+    std::unique_ptr<VkImage[]> mPresentImages;
+    int mSurfaceWidth;
+    int mSurfaceHeight;
     /*
     MTKView* mView;
     id<MTLDevice> mDevice;

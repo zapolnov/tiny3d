@@ -1,5 +1,6 @@
 #include "Win32.h"
-#include "Vulkan.h"
+#include "Engine/Renderer/Vulkan/VulkanRenderDevice.h"
+#include "Engine/Renderer/Vulkan/VulkanCommon.h"
 
 HWND hWnd;
 
@@ -80,8 +81,16 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         return 1;
     }
 
+    std::unique_ptr<VulkanRenderDevice> renderDevice{new VulkanRenderDevice};
+    if (!renderDevice->initialized()) {
+        destroyVulkan();
+        DestroyWindow(hWnd);
+        return 1;
+    }
+
     MainLoop();
 
+    destroyVulkan();
     DestroyWindow(hWnd);
 
     return 0;
