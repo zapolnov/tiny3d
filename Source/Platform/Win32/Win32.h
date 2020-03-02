@@ -4,3 +4,5 @@
 #define UNICODE
 #define NOMINMAX
 #include <windows.h>
+
+extern HWND hWnd;
