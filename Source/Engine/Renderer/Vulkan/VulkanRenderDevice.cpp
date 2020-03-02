@@ -13,7 +13,7 @@
 #include <glm/mat3x4.hpp>
 #include <cassert>
 
-VulkanRenderDevice::VulkanRenderDevice(/*MTKView* view*/)
+VulkanRenderDevice::VulkanRenderDevice()
     : mInitialized(false)
 {
     VkPhysicalDevice physicalDevice;
@@ -214,19 +214,6 @@ VulkanRenderDevice::VulkanRenderDevice(/*MTKView* view*/)
     mPresentImages.reset(new VkImage[imageCount]);
     vkGetSwapchainImagesKHR(mDevice, mSwapChain, &imageCount, mPresentImages.get());
 
-    VkImageViewCreateInfo presentImagesViewCreateInfo;
-    presentImagesViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    presentImagesViewCreateInfo.pNext = nullptr;
-    presentImagesViewCreateInfo.flags = 0;
-    presentImagesViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    presentImagesViewCreateInfo.format = colorFormat;
-    presentImagesViewCreateInfo.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
-    presentImagesViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    presentImagesViewCreateInfo.subresourceRange.baseMipLevel = 0;
-    presentImagesViewCreateInfo.subresourceRange.levelCount = 1;
-    presentImagesViewCreateInfo.subresourceRange.baseArrayLayer = 0;
-    presentImagesViewCreateInfo.subresourceRange.layerCount = 1;
-
     VkFenceCreateInfo fenceCreateInfo;
     fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceCreateInfo.pNext = nullptr;
@@ -239,7 +226,7 @@ VulkanRenderDevice::VulkanRenderDevice(/*MTKView* view*/)
     for (uint32_t processedCount = 0; processedCount < imageCount; ) {
         VkSemaphore presentCompleteSemaphore;
         VkSemaphoreCreateInfo semaphoreCreateInfo = { VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO, 0, 0 };
-        vkCreateSemaphore(mDevice, &semaphoreCreateInfo, NULL, &presentCompleteSemaphore);
+        vkCreateSemaphore(mDevice, &semaphoreCreateInfo, nullptr, &presentCompleteSemaphore);
 
         uint32_t nextImageIndex = 0;
         vkAcquireNextImageKHR(mDevice, mSwapChain, UINT64_MAX, presentCompleteSemaphore, VK_NULL_HANDLE, &nextImageIndex);
@@ -295,12 +282,231 @@ VulkanRenderDevice::VulkanRenderDevice(/*MTKView* view*/)
         presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
         presentInfo.pNext = nullptr;
         presentInfo.waitSemaphoreCount = 0;
-        presentInfo.pWaitSemaphores = NULL;
+        presentInfo.pWaitSemaphores = nullptr;
         presentInfo.swapchainCount = 1;
         presentInfo.pSwapchains = &mSwapChain;
         presentInfo.pImageIndices = &nextImageIndex;
         presentInfo.pResults = nullptr;
         vkQueuePresentKHR(mPresentQueue, &presentInfo);
+    }
+
+    std::unique_ptr<VkImageView[]> presentImageViews{new VkImageView[imageCount]};
+    for (uint32_t i = 0; i < imageCount; ++i) {
+        VkImageViewCreateInfo presentImagesViewCreateInfo;
+        presentImagesViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        presentImagesViewCreateInfo.pNext = nullptr;
+        presentImagesViewCreateInfo.flags = 0;
+        presentImagesViewCreateInfo.image = mPresentImages[i];
+        presentImagesViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        presentImagesViewCreateInfo.format = colorFormat;
+        presentImagesViewCreateInfo.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
+        presentImagesViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        presentImagesViewCreateInfo.subresourceRange.baseMipLevel = 0;
+        presentImagesViewCreateInfo.subresourceRange.levelCount = 1;
+        presentImagesViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+        presentImagesViewCreateInfo.subresourceRange.layerCount = 1;
+                presentImagesViewCreateInfo.image = mPresentImages[i];
+
+        result = vkCreateImageView(mDevice, &presentImagesViewCreateInfo, nullptr, &presentImageViews[i]);
+        if (result != VK_SUCCESS) {
+            vulkanError("Unable to create view for swap chain image.");
+            return;
+        }
+    }
+
+    // Setup depth buffer
+
+    VkPhysicalDeviceMemoryProperties memoryProperties;
+    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memoryProperties);
+
+    VkImageCreateInfo imageCreateInfo;
+    imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    imageCreateInfo.pNext = nullptr;
+    imageCreateInfo.flags = 0;
+    imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+    imageCreateInfo.format = VK_FORMAT_D16_UNORM;
+    imageCreateInfo.extent = { uint32_t(mSurfaceWidth), uint32_t(mSurfaceHeight), 1 };
+    imageCreateInfo.mipLevels = 1;
+    imageCreateInfo.arrayLayers = 1;
+    imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+    imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+    imageCreateInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+    imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    imageCreateInfo.queueFamilyIndexCount = 0;
+    imageCreateInfo.pQueueFamilyIndices = nullptr;
+    imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    result = vkCreateImage(mDevice, &imageCreateInfo, nullptr, &mDepthImage);
+    if (result != VK_SUCCESS) {
+        vulkanError("Unable to create depth image.");
+        return;
+    }
+
+    VkMemoryRequirements memoryRequirements;
+    vkGetImageMemoryRequirements(mDevice, mDepthImage, &memoryRequirements);
+
+    VkMemoryAllocateInfo imageAllocateInfo;
+    imageAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    imageAllocateInfo.pNext = nullptr;
+    imageAllocateInfo.allocationSize = memoryRequirements.size;
+    imageAllocateInfo.memoryTypeIndex = 0;
+
+    VkMemoryPropertyFlags desiredMemoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+    for (uint32_t i = 0; i < 32; ++i) {
+        if (memoryRequirements.memoryTypeBits & (1 << i)) {
+            if ((memoryProperties.memoryTypes[i].propertyFlags & desiredMemoryFlags) == desiredMemoryFlags) {
+                imageAllocateInfo.memoryTypeIndex = i;
+                break;
+            }
+        }
+    }
+
+    VkDeviceMemory imageMemory;
+    result = vkAllocateMemory(mDevice, &imageAllocateInfo, nullptr, &imageMemory);
+    if (result != VK_SUCCESS) {
+        vulkanError("Unable to allocate device memory for depth image.");
+        return;
+    }
+
+    result = vkBindImageMemory(mDevice, mDepthImage, imageMemory, 0);
+    if (result != VK_SUCCESS) {
+        vulkanError("Unable to bind memory for depth image.");
+        return;
+    }
+
+    VkCommandBufferBeginInfo beginInfo;
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.pNext = nullptr;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    beginInfo.pInheritanceInfo = nullptr;
+
+    vkBeginCommandBuffer(mSetupCommandBuffer, &beginInfo);
+
+    VkImageMemoryBarrier layoutTransitionBarrier;
+    layoutTransitionBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    layoutTransitionBarrier.pNext = nullptr;
+    layoutTransitionBarrier.srcAccessMask = 0;
+    layoutTransitionBarrier.dstAccessMask =
+        VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+        VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    layoutTransitionBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    layoutTransitionBarrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    layoutTransitionBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    layoutTransitionBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    layoutTransitionBarrier.image = mDepthImage;
+    VkImageSubresourceRange resourceRange = { VK_IMAGE_ASPECT_DEPTH_BIT, 0, 1, 0, 1 };
+    layoutTransitionBarrier.subresourceRange = resourceRange;
+
+    vkCmdPipelineBarrier(mSetupCommandBuffer,
+        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+        0, 0, nullptr, 0, nullptr, 1, &layoutTransitionBarrier);
+
+    vkEndCommandBuffer(mSetupCommandBuffer);
+
+    VkPipelineStageFlags waitStageMask[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+    VkSubmitInfo submitInfo = {};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.waitSemaphoreCount = 0;
+    submitInfo.pWaitSemaphores = nullptr;
+    submitInfo.pWaitDstStageMask = waitStageMask;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &mSetupCommandBuffer;
+    submitInfo.signalSemaphoreCount = 0;
+    submitInfo.pSignalSemaphores = nullptr;
+    result = vkQueueSubmit(mPresentQueue, 1, &submitInfo, submitFence);
+
+    vkWaitForFences(mDevice, 1, &submitFence, VK_TRUE, UINT64_MAX);
+    vkResetFences(mDevice, 1, &submitFence);
+    vkResetCommandBuffer(mSetupCommandBuffer, 0);
+
+    VkImageViewCreateInfo imageViewCreateInfo;
+    imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    imageViewCreateInfo.pNext = nullptr;
+    imageViewCreateInfo.flags = 0;
+    imageViewCreateInfo.image = mDepthImage;
+    imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    imageViewCreateInfo.format = imageCreateInfo.format;
+    imageViewCreateInfo.components = { VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY,
+                                       VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY };
+    imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+    imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+    imageViewCreateInfo.subresourceRange.levelCount = 1;
+    imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+    imageViewCreateInfo.subresourceRange.layerCount = 1;
+    result = vkCreateImageView(mDevice, &imageViewCreateInfo, nullptr, &mDepthImageView);
+    if (result != VK_SUCCESS) {
+        vulkanError("Unable to create view for depth image.");
+        return;
+    }
+
+    // Create render pass
+
+    VkAttachmentReference colorAttachmentReference = {};
+    colorAttachmentReference.attachment = 0;
+    colorAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    VkAttachmentReference depthAttachmentReference = {};
+    depthAttachmentReference.attachment = 1;
+    depthAttachmentReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    VkSubpassDescription subpass = {};
+    subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpass.colorAttachmentCount = 1;
+    subpass.pColorAttachments = &colorAttachmentReference;
+    subpass.pDepthStencilAttachment = &depthAttachmentReference;
+
+    VkAttachmentDescription passAttachments[2] = {};
+    passAttachments[0].format = colorFormat;
+    passAttachments[0].samples = VK_SAMPLE_COUNT_1_BIT;
+    passAttachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    passAttachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    passAttachments[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    passAttachments[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    passAttachments[0].initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    passAttachments[0].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    passAttachments[1].format = VK_FORMAT_D16_UNORM;
+    passAttachments[1].samples = VK_SAMPLE_COUNT_1_BIT;
+    passAttachments[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    passAttachments[1].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    passAttachments[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    passAttachments[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    passAttachments[1].initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    passAttachments[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    VkRenderPassCreateInfo renderPassCreateInfo = {};
+    renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    renderPassCreateInfo.attachmentCount = 2;
+    renderPassCreateInfo.pAttachments = passAttachments;
+    renderPassCreateInfo.subpassCount = 1;
+    renderPassCreateInfo.pSubpasses = &subpass;
+
+    result = vkCreateRenderPass(mDevice, &renderPassCreateInfo, nullptr, &mRenderPass);
+    if (result != VK_SUCCESS) {
+        vulkanError("Unable to create render pass.");
+        return;
+    }
+
+    // Create framebuffer
+
+    VkImageView frameBufferAttachments[2];
+    frameBufferAttachments[1] = mDepthImageView;
+
+    VkFramebufferCreateInfo frameBufferCreateInfo = {};
+    frameBufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+    frameBufferCreateInfo.renderPass = mRenderPass;
+    frameBufferCreateInfo.attachmentCount = 2;
+    frameBufferCreateInfo.pAttachments = frameBufferAttachments;
+    frameBufferCreateInfo.width = mSurfaceWidth;
+    frameBufferCreateInfo.height = mSurfaceHeight;
+    frameBufferCreateInfo.layers = 1;
+
+    mFramebuffers.reset(new VkFramebuffer[imageCount]);
+    for (uint32_t i = 0; i < imageCount; ++i) {
+        frameBufferAttachments[0] = presentImageViews[i];
+        result = vkCreateFramebuffer(mDevice, &frameBufferCreateInfo, nullptr, &mFramebuffers[i]);
+        if (result != VK_SUCCESS) {
+            vulkanError("Unable to create framebuffer.");
+            return;
+        }
     }
 
     /*
@@ -330,7 +536,7 @@ VulkanRenderDevice::~VulkanRenderDevice()
 
 glm::vec2 VulkanRenderDevice::viewportSize() const
 {
-    return glm::vec2(0, 0);//mViewport.width, mViewport.height);
+    return glm::vec2(mSurfaceWidth, mSurfaceHeight);
 }
 
 std::unique_ptr<IRenderBuffer> VulkanRenderDevice::createBuffer(size_t size)
@@ -526,6 +732,20 @@ bool VulkanRenderDevice::beginFrame()
 
 void VulkanRenderDevice::endFrame()
 {
+    uint32_t nextImageIndex;
+    vkAcquireNextImageKHR(mDevice, mSwapChain, UINT64_MAX, VK_NULL_HANDLE, VK_NULL_HANDLE, &nextImageIndex);
+
+    VkPresentInfoKHR presentInfo;
+    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    presentInfo.pNext = nullptr;
+    presentInfo.waitSemaphoreCount = 0;
+    presentInfo.pWaitSemaphores = nullptr;
+    presentInfo.swapchainCount = 1;
+    presentInfo.pSwapchains = &mSwapChain;
+    presentInfo.pImageIndices = &nextImageIndex;
+    presentInfo.pResults = nullptr;
+    vkQueuePresentKHR(mPresentQueue, &presentInfo);
+
     /*
     [mCommandEncoder endEncoding];
     [mCommandBuffer presentDrawable:mView.currentDrawable];

@@ -63,7 +63,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     r.bottom = r.top + height;
 
     DWORD dwExStyle = WS_EX_APPWINDOW;
-    DWORD dwStyle = WS_OVERLAPPEDWINDOW;
+    DWORD dwStyle = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX;
     AdjustWindowRectEx(&r, dwStyle, false, dwExStyle);
 
     hWnd = CreateWindowEx(dwExStyle, wc.lpszClassName, TEXT("Game"), dwStyle,

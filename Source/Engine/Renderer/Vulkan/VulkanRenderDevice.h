@@ -6,13 +6,10 @@
 class VulkanRenderDevice : public IRenderDevice
 {
 public:
-    explicit VulkanRenderDevice(/*MTKView* view*/);
+    VulkanRenderDevice();
     ~VulkanRenderDevice();
 
     bool initialized() const { return mInitialized; }
-
-    //id<MTLDevice> nativeDevice() const { return mDevice; }
-    //id<MTLCommandBuffer> nativeCommandBuffer() const { return mCommandBuffer; }
 
     glm::vec2 viewportSize() const override;
 
@@ -48,7 +45,11 @@ private:
     VkQueue mPresentQueue;
     VkCommandBuffer mSetupCommandBuffer;
     VkCommandBuffer mDrawCommandBuffer;
+    VkImage mDepthImage;
+    VkImageView mDepthImageView;
+    VkRenderPass mRenderPass;
     std::unique_ptr<VkImage[]> mPresentImages;
+    std::unique_ptr<VkFramebuffer[]> mFramebuffers;
     int mSurfaceWidth;
     int mSurfaceHeight;
     /*
