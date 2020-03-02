@@ -1,10 +1,18 @@
 #include "Win32.h"
 #include <memory>
+#include <vector>
 #include <cstring>
 
 #define VK_USE_PLATFORM_WIN32_KHR
 #define VK_NO_PROTOTYPES
 #include <vulkan/vulkan.h>
+
+static VkInstance instance;
+static VkDebugReportCallbackEXT debugCallback;
+static VkSurfaceKHR surface;
+static VkPhysicalDevice physicalDevice;
+static VkPhysicalDeviceProperties physicalDeviceProperties;
+static int presentQueueIndex;
 
 template <typename T> static T getVulkanAPI(HMODULE hVulkanDll, const char* name)
 {
@@ -64,7 +72,16 @@ bool initVulkan()
     auto vkGetInstanceProcAddr = getVulkanAPI<PFN_vkGetInstanceProcAddr>(hVulkanDll, "vkGetInstanceProcAddr");
     auto vkEnumerateInstanceExtensionProperties = getVulkanAPI<PFN_vkEnumerateInstanceExtensionProperties>(hVulkanDll, "vkEnumerateInstanceExtensionProperties");
     auto vkEnumerateInstanceLayerProperties = getVulkanAPI<PFN_vkEnumerateInstanceLayerProperties>(hVulkanDll, "vkEnumerateInstanceLayerProperties");
-    if (!vkCreateInstance || !vkEnumerateInstanceExtensionProperties || !vkEnumerateInstanceLayerProperties)
+    auto vkEnumeratePhysicalDevices = getVulkanAPI<PFN_vkEnumeratePhysicalDevices>(hVulkanDll, "vkEnumeratePhysicalDevices");
+    auto vkGetPhysicalDeviceProperties = getVulkanAPI<PFN_vkGetPhysicalDeviceProperties>(hVulkanDll, "vkGetPhysicalDeviceProperties");
+    auto vkGetPhysicalDeviceQueueFamilyProperties = getVulkanAPI<PFN_vkGetPhysicalDeviceQueueFamilyProperties>(hVulkanDll, "vkGetPhysicalDeviceQueueFamilyProperties");
+    if (!vkCreateInstance ||
+        !vkGetInstanceProcAddr ||
+        !vkEnumerateInstanceExtensionProperties ||
+        !vkEnumerateInstanceLayerProperties ||
+        !vkEnumeratePhysicalDevices ||
+        !vkGetPhysicalDeviceProperties ||
+        !vkGetPhysicalDeviceQueueFamilyProperties)
         return false;
 
     // Enumerate avaiable layers
@@ -98,6 +115,17 @@ bool initVulkan()
     if (!ensureVulkanExtensionAvailable(availableExtensions, extensionCount, "VK_KHR_win32_surface"))
         return false;
 
+    std::vector<const char*> enabledExtensions;
+    enabledExtensions.emplace_back("VK_KHR_surface");
+    enabledExtensions.emplace_back("VK_KHR_win32_surface");
+  #ifndef NDEBUG
+    bool enableDebugReport = false;
+    if (foundValidation && isVulkanExtensionAvailable(availableExtensions, extensionCount, "VK_EXT_debug_report")) {
+        enableDebugReport = true;
+        enabledExtensions.emplace_back("VK_EXT_debug_report");
+    }
+  #endif
+
     // Create Vulkan instance
 
     VkApplicationInfo appInfo;
@@ -116,10 +144,9 @@ bool initVulkan()
     instanceInfo.pApplicationInfo = &appInfo;
     instanceInfo.enabledLayerCount = (foundValidation ? 1 : 0);
     instanceInfo.ppEnabledLayerNames = (foundValidation ? validationLayer : nullptr);
-    instanceInfo.enabledExtensionCount = 0;
-    instanceInfo.ppEnabledExtensionNames = nullptr;
+    instanceInfo.enabledExtensionCount = enabledExtensions.size();
+    instanceInfo.ppEnabledExtensionNames = enabledExtensions.data();
 
-    VkInstance instance;
     VkResult result = vkCreateInstance(&instanceInfo, nullptr, &instance);
     if (result != VK_SUCCESS) {
         MessageBox(hWnd, TEXT("Unable to create Vulkan instance."), TEXT("Error"), MB_ICONERROR | MB_OK);
@@ -129,10 +156,12 @@ bool initVulkan()
     // Enable validation layer in debug builds
 
   #ifndef NDEBUG
-    if (foundValidation && isVulkanExtensionAvailable(availableExtensions, extensionCount, "VK_EXT_debug_report")) {
+    if (enableDebugReport) {
         auto vkCreateDebugReportCallbackEXT =
             (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT");
-        if (vkCreateDebugReportCallbackEXT) {
+        if (!vkCreateDebugReportCallbackEXT)
+            MessageBox(hWnd, TEXT("Missing Vulkan API \"vkCreateDebugReportCallbackEXT\"."), TEXT("Error"), MB_ICONERROR | MB_OK);
+        else {
             VkDebugReportCallbackCreateInfoEXT info;
             info.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT;
             info.pNext = nullptr;
@@ -140,11 +169,79 @@ bool initVulkan()
             info.pfnCallback = debugReportCallback;
             info.pUserData = nullptr;
 
-            VkDebugReportCallbackEXT callback;
-            result = vkCreateDebugReportCallbackEXT(instance, &info, nullptr, &callback);
+            result = vkCreateDebugReportCallbackEXT(instance, &info, nullptr, &debugCallback);
+            if (result != VK_SUCCESS) {
+                MessageBox(hWnd, TEXT("Unable to install debug report callback."), TEXT("Error"), MB_ICONERROR | MB_OK);
+                return false;
+            }
         }
     }
   #endif
+
+    // Create Win32 surface
+
+    auto vkCreateWin32SurfaceKHR =
+        (PFN_vkCreateWin32SurfaceKHR)vkGetInstanceProcAddr(instance, "vkCreateWin32SurfaceKHR");
+    if (!vkCreateWin32SurfaceKHR) {
+        MessageBox(hWnd, TEXT("Missing Vulkan API \"vkCreateWin32SurfaceKHR\"."), TEXT("Error"), MB_ICONERROR | MB_OK);
+        return false;
+    }
+
+    VkWin32SurfaceCreateInfoKHR surfaceInfo;
+    surfaceInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+    surfaceInfo.pNext = nullptr;
+    surfaceInfo.flags = 0;
+    surfaceInfo.hinstance = GetModuleHandle(nullptr);
+    surfaceInfo.hwnd = hWnd;
+
+    result = vkCreateWin32SurfaceKHR(instance, &surfaceInfo, nullptr, &surface);
+    if (result != VK_SUCCESS) {
+        MessageBox(hWnd, TEXT("Unable to create Vulkan surface."), TEXT("Error"), MB_ICONERROR | MB_OK);
+        return false;
+    }
+
+    // Enumerate devices and queues
+
+    auto vkGetPhysicalDeviceSurfaceSupportKHR =
+        (PFN_vkGetPhysicalDeviceSurfaceSupportKHR)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceSurfaceSupportKHR");
+    if (!vkGetPhysicalDeviceSurfaceSupportKHR) {
+        MessageBox(hWnd, TEXT("Missing Vulkan API \"vkGetPhysicalDeviceSurfaceSupportKHR\"."), TEXT("Error"), MB_ICONERROR | MB_OK);
+        return false;
+    }
+
+    uint32_t physicalDeviceCount = 0;
+    vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, NULL);
+    std::unique_ptr<VkPhysicalDevice[]> physicalDevices{new VkPhysicalDevice[physicalDeviceCount]};
+    vkEnumeratePhysicalDevices(instance, &physicalDeviceCount, physicalDevices.get());
+
+    for (uint32_t i = 0; i < physicalDeviceCount; ++i) {
+        VkPhysicalDeviceProperties deviceProperties = {};
+        vkGetPhysicalDeviceProperties(physicalDevices[i], &deviceProperties);
+
+        uint32_t queueFamilyCount = 0;
+        vkGetPhysicalDeviceQueueFamilyProperties(physicalDevices[i], &queueFamilyCount, nullptr);
+        std::unique_ptr<VkQueueFamilyProperties[]> queueFamilyProperties{new VkQueueFamilyProperties[queueFamilyCount]};
+        vkGetPhysicalDeviceQueueFamilyProperties(physicalDevices[i], &queueFamilyCount, queueFamilyProperties.get());
+
+        for (uint32_t j = 0; j < queueFamilyCount; ++j) {
+            VkBool32 supportsPresent;
+            vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevices[i], j, surface, &supportsPresent);
+            if (supportsPresent && (queueFamilyProperties[j].queueFlags & VK_QUEUE_GRAPHICS_BIT)) {
+                physicalDevice = physicalDevices[i];
+                physicalDeviceProperties = deviceProperties;
+                presentQueueIndex = j;
+                break;
+            }
+        }
+
+        if (physicalDevice)
+            break;
+    }
+
+    if (!physicalDevice) {
+        MessageBox(hWnd, TEXT("No physical Vulkan device found."), TEXT("Error"), MB_ICONERROR | MB_OK);
+        return false;
+    }
 
     return true;
 }
