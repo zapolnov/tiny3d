@@ -1,5 +1,6 @@
 #pragma once
 #include "Engine/Renderer/IRenderBuffer.h"
+#include "Engine/Renderer/Vulkan/VulkanCommon.h"
 
 class VulkanRenderDevice;
 
@@ -16,7 +17,7 @@ public:
 
 private:
     VulkanRenderDevice* mDevice;
-    //id<MTLBuffer> mBuffer;
+    VkBuffer mHandle;
     //dispatch_semaphore_t mSemaphore;
     size_t mSize;
     size_t mAlignedSize;

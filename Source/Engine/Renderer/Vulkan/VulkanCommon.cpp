@@ -1,5 +1,6 @@
 #include "VulkanCommon.h"
 #include <memory>
+#include <cassert>
 
 bool vulkanHasValidationLayer;
 VkInstance vulkanInstance;
@@ -34,6 +35,9 @@ PFN_vkAllocateMemory vkAllocateMemory;
 PFN_vkBindImageMemory vkBindImageMemory;
 PFN_vkCreateRenderPass vkCreateRenderPass;
 PFN_vkCreateFramebuffer vkCreateFramebuffer;
+PFN_vkCreateBuffer vkCreateBuffer;
+PFN_vkDestroyBuffer vkDestroyBuffer;
+PFN_vkGetBufferMemoryRequirements vkGetBufferMemoryRequirements;
 
 PFN_vkGetPhysicalDeviceSurfaceSupportKHR vkGetPhysicalDeviceSurfaceSupportKHR;
 PFN_vkGetPhysicalDeviceSurfaceFormatsKHR vkGetPhysicalDeviceSurfaceFormatsKHR;

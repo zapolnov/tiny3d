@@ -41,6 +41,9 @@ extern PFN_vkAllocateMemory vkAllocateMemory;
 extern PFN_vkBindImageMemory vkBindImageMemory;
 extern PFN_vkCreateRenderPass vkCreateRenderPass;
 extern PFN_vkCreateFramebuffer vkCreateFramebuffer;
+extern PFN_vkCreateBuffer vkCreateBuffer;
+extern PFN_vkDestroyBuffer vkDestroyBuffer;
+extern PFN_vkGetBufferMemoryRequirements vkGetBufferMemoryRequirements;
 
 extern PFN_vkGetPhysicalDeviceSurfaceSupportKHR vkGetPhysicalDeviceSurfaceSupportKHR;
 extern PFN_vkGetPhysicalDeviceSurfaceFormatsKHR vkGetPhysicalDeviceSurfaceFormatsKHR;

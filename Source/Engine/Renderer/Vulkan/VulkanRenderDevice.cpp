@@ -56,6 +56,8 @@ VulkanRenderDevice::VulkanRenderDevice()
         return;
     }
 
+    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &mMemoryProperties);
+
     // Create rendering device
 
     static const float queuePriorities[] = { 1.0f };
@@ -316,9 +318,6 @@ VulkanRenderDevice::VulkanRenderDevice()
 
     // Setup depth buffer
 
-    VkPhysicalDeviceMemoryProperties memoryProperties;
-    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memoryProperties);
-
     VkImageCreateInfo imageCreateInfo;
     imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageCreateInfo.pNext = nullptr;
@@ -343,30 +342,7 @@ VulkanRenderDevice::VulkanRenderDevice()
 
     VkMemoryRequirements memoryRequirements;
     vkGetImageMemoryRequirements(mDevice, mDepthImage, &memoryRequirements);
-
-    VkMemoryAllocateInfo imageAllocateInfo;
-    imageAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    imageAllocateInfo.pNext = nullptr;
-    imageAllocateInfo.allocationSize = memoryRequirements.size;
-    imageAllocateInfo.memoryTypeIndex = 0;
-
-    VkMemoryPropertyFlags desiredMemoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-    for (uint32_t i = 0; i < 32; ++i) {
-        if (memoryRequirements.memoryTypeBits & (1 << i)) {
-            if ((memoryProperties.memoryTypes[i].propertyFlags & desiredMemoryFlags) == desiredMemoryFlags) {
-                imageAllocateInfo.memoryTypeIndex = i;
-                break;
-            }
-        }
-    }
-
-    VkDeviceMemory imageMemory;
-    result = vkAllocateMemory(mDevice, &imageAllocateInfo, nullptr, &imageMemory);
-    if (result != VK_SUCCESS) {
-        vulkanError("Unable to allocate device memory for depth image.");
-        return;
-    }
-
+    auto imageMemory = allocDeviceMemory(memoryRequirements, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     result = vkBindImageMemory(mDevice, mDepthImage, imageMemory, 0);
     if (result != VK_SUCCESS) {
         vulkanError("Unable to bind memory for depth image.");
@@ -537,6 +513,34 @@ VulkanRenderDevice::~VulkanRenderDevice()
 glm::vec2 VulkanRenderDevice::viewportSize() const
 {
     return glm::vec2(mSurfaceWidth, mSurfaceHeight);
+}
+
+uint32_t VulkanRenderDevice::findDeviceMemory(const VkMemoryRequirements& memory, VkMemoryPropertyFlags desiredFlags) const
+{
+    for (uint32_t i = 0; i < 32; ++i) {
+        if (memory.memoryTypeBits & (1 << i)) {
+            if ((mMemoryProperties.memoryTypes[i].propertyFlags & desiredFlags) == desiredFlags)
+                return i;
+        }
+    }
+
+    assert(false);
+    return 0;
+}
+
+VkDeviceMemory VulkanRenderDevice::allocDeviceMemory(const VkMemoryRequirements& memory, VkMemoryPropertyFlags desiredFlags)
+{
+    VkMemoryAllocateInfo allocInfo;
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.pNext = nullptr;
+    allocInfo.allocationSize = memory.size;
+    allocInfo.memoryTypeIndex = findDeviceMemory(memory, desiredFlags);
+
+    VkDeviceMemory allocatedMemory;
+    VkResult result = vkAllocateMemory(mDevice, &allocInfo, nullptr, &allocatedMemory);
+    assert(result == VK_SUCCESS);   // FIXME: better error handling
+
+    return allocatedMemory;
 }
 
 std::unique_ptr<IRenderBuffer> VulkanRenderDevice::createBuffer(size_t size)

@@ -66,7 +66,10 @@ bool initVulkan()
         !getVulkanAPI(hVulkanDll, "vkAllocateMemory", vkAllocateMemory) ||
         !getVulkanAPI(hVulkanDll, "vkBindImageMemory", vkBindImageMemory) ||
         !getVulkanAPI(hVulkanDll, "vkCreateRenderPass", vkCreateRenderPass) ||
-        !getVulkanAPI(hVulkanDll, "vkCreateFramebuffer", vkCreateFramebuffer))
+        !getVulkanAPI(hVulkanDll, "vkCreateFramebuffer", vkCreateFramebuffer) ||
+        !getVulkanAPI(hVulkanDll, "vkCreateBuffer", vkCreateBuffer) ||
+        !getVulkanAPI(hVulkanDll, "vkDestroyBuffer", vkDestroyBuffer) ||
+        !getVulkanAPI(hVulkanDll, "vkGetBufferMemoryRequirements", vkGetBufferMemoryRequirements))
         return false;
 
     // Enumerate avaiable layers

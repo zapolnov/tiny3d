@@ -11,7 +11,12 @@ public:
 
     bool initialized() const { return mInitialized; }
 
+    VkDevice nativeDevice() const { return mDevice; }
+
     glm::vec2 viewportSize() const override;
+
+    uint32_t findDeviceMemory(const VkMemoryRequirements& memory, VkMemoryPropertyFlags desiredFlags) const;
+    VkDeviceMemory allocDeviceMemory(const VkMemoryRequirements& memory, VkMemoryPropertyFlags desiredFlags);
 
     std::unique_ptr<IRenderBuffer> createBuffer(size_t size) override;
     std::unique_ptr<IRenderBuffer> createBufferWithData(const void* data, size_t size) override;
@@ -48,6 +53,7 @@ private:
     VkImage mDepthImage;
     VkImageView mDepthImageView;
     VkRenderPass mRenderPass;
+    VkPhysicalDeviceMemoryProperties mMemoryProperties;
     std::unique_ptr<VkImage[]> mPresentImages;
     std::unique_ptr<VkFramebuffer[]> mFramebuffers;
     int mSurfaceWidth;
