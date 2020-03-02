@@ -1,4 +1,5 @@
 #include "Win32.h"
+#include <memory>
 
 #define VK_USE_PLATFORM_WIN32_KHR
 #define VK_NO_PROTOTYPES
@@ -27,6 +28,18 @@ static LRESULT CALLBACK MainWindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARA
     return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
+template <typename T> static T GetVulkanAPI(HMODULE hVulkanDll, const char* name)
+{
+    auto fn = (T)GetProcAddress(hVulkanDll, name);
+    if (!fn) {
+        TCHAR buf[1024];
+        wsprintf(buf, TEXT("Entry point \"%hs\" was not found in the Vulkan DLL."), name);
+        MessageBox(hWnd, buf, TEXT("Error"), MB_ICONERROR | MB_OK);
+        return nullptr;
+    }
+    return fn;
+}
+
 static bool InitVulkan()
 {
     HMODULE hVulkanDll = LoadLibrary(TEXT("vulkan-1.dll"));
@@ -35,11 +48,27 @@ static bool InitVulkan()
         return false;
     }
 
-    auto vkCreateInstance = (PFN_vkCreateInstance)GetProcAddress(hVulkanDll, "vkCreateInstance");
-    if (!vkCreateInstance) {
-        MessageBox(hWnd, TEXT("Entry point \"vkCreateInstance\" was not found in the Vulkan DLL."), TEXT("Error"), MB_ICONERROR | MB_OK);
+    auto vkCreateInstance = GetVulkanAPI<PFN_vkCreateInstance>(hVulkanDll, "vkCreateInstance");
+    auto vkEnumerateInstanceLayerProperties = GetVulkanAPI<PFN_vkEnumerateInstanceLayerProperties>(hVulkanDll, "vkEnumerateInstanceLayerProperties");
+    if (!vkCreateInstance || !vkEnumerateInstanceLayerProperties)
         return false;
+
+    uint32_t layerCount = 0;
+    vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+    std::unique_ptr<VkLayerProperties[]> availableLayers{new VkLayerProperties[layerCount]};
+    vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.get());
+
+    bool foundValidation = false;
+    static const char* validationLayer[] = { "VK_LAYER_LUNARG_standard_validation" };
+  #ifndef NDEBUG
+    for (uint32_t i = 0; i < layerCount; ++i) {
+        if (!strcmp(availableLayers[i].layerName, validationLayer[0])) {
+            OutputDebugString(TEXT("Found Vulkan validation layer!\n"));
+            foundValidation = true;
+            break;
+        }
     }
+  #endif
 
     VkApplicationInfo appInfo;
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -55,8 +84,8 @@ static bool InitVulkan()
     instanceInfo.pNext = nullptr;
     instanceInfo.flags = 0;
     instanceInfo.pApplicationInfo = &appInfo;
-    instanceInfo.enabledLayerCount = 0;
-    instanceInfo.ppEnabledLayerNames = nullptr;
+    instanceInfo.enabledLayerCount = (foundValidation ? 1 : 0);
+    instanceInfo.ppEnabledLayerNames = (foundValidation ? validationLayer : nullptr);
     instanceInfo.enabledExtensionCount = 0;
     instanceInfo.ppEnabledExtensionNames = nullptr;
 
