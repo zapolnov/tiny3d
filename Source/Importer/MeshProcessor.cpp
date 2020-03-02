@@ -1,5 +1,6 @@
 #include "MeshProcessor.h"
 #include "Util.h"
+#include <mutex>
 #include <assimp/Importer.hpp>
 #include <assimp/IOStream.hpp>
 #include <assimp/IOSystem.hpp>

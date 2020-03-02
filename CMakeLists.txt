@@ -5,7 +5,7 @@ project(Game)
 include(CMake/Common.cmake)
 
 set_directory_properties(PROPERTIES
-    VS_STARTUP_PROJECT "Game")
+    VS_STARTUP_PROJECT "launcher")
 
 include_directories(
         "${CMAKE_CURRENT_SOURCE_DIR}/Source"

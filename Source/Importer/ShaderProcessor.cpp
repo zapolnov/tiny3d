@@ -58,8 +58,13 @@ bool ShaderProcessor::process(const ConfigFile::Shader& shader)
     mHdr << "    extern const ShaderCode " << shader.id << ";\n";
 
     mCxx << "    const ShaderCode " << shader.id << " = {\n";
+  #ifdef __APPLE__
     mCxx << "        /* .metal = */ &Metal::" << shader.id << ",\n";
     mCxx << "        /* .metalSize = */ sizeof(Metal::" << shader.id << "),\n";
+  #else
+    mCxx << "        /* .metal = */ nullptr,\n";
+    mCxx << "        /* .metalSize = */ 0,\n";
+  #endif
     mCxx << "    };\n\n";
 
     if (!compileMetalShader(shader))
@@ -70,6 +75,7 @@ bool ShaderProcessor::process(const ConfigFile::Shader& shader)
 
 bool ShaderProcessor::compileMetalShader(const ConfigFile::Shader& shader)
 {
+  #ifdef __APPLE__
     // FIXME: code below needs better escaping
 
     std::stringstream ss;
@@ -98,6 +104,7 @@ bool ShaderProcessor::compileMetalShader(const ConfigFile::Shader& shader)
     for (auto ch : bytes)
         mCxxMetal << "        " << unsigned(uint8_t(ch)) << ",\n";
     mCxxMetal << "    };\n\n";
+  #endif
 
     return true;
 }

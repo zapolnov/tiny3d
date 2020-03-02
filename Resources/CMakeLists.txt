@@ -36,6 +36,14 @@ add(STATIC_LIBRARY
         assets.xml
     )
 
+set_source_files_properties(
+    ${levels}
+    ${textures}
+    ${meshes}
+    ${shaders}
+    PROPERTIES HEADER_FILE_ONLY TRUE
+    )
+
 set(first TRUE)
 set(output)
 set(byproducts)
