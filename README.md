@@ -16,3 +16,9 @@ and bloated executable size. Also, texture data is stored uncompressed. Do not u
 Engine includes simple resource manager to avoid loading multiple textures or meshes twice. As assets are
 embedded into the executable, resource manager uses data pointers as keys for caching data. In proper game engine
 you would rather use string identifiers (e.g. file names) or hashes and don't rely on memory addresses.
+
+Screenshots
+-----------
+
+![Screen1](Docs/Screenshots/Screen1.png)
+![Screen2](Docs/Screenshots/Screen2.png)
