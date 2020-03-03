@@ -3,7 +3,6 @@
 
 #version 450
 
-/*
 layout(binding=0) uniform VertexUniforms {
     mat4 modelMatrix;
     mat4 viewMatrix;
@@ -11,7 +10,6 @@ layout(binding=0) uniform VertexUniforms {
     mat3 normalMatrix;
     vec3 lightPosition;
 } vertexUniforms;
-*/
 
 layout(location=0) in vec3 in_position;
 layout(location=1) in vec3 in_normal;
@@ -23,11 +21,11 @@ layout(location=2) out vec2 out_texCoord;
 
 void main()
 {
-    vec4 position = /*vertexUniforms.modelMatrix */ vec4(in_position, 1.0);
+    vec4 position = vertexUniforms.modelMatrix * vec4(in_position, 1.0);
 
-    gl_Position = /*vertexUniforms.projectionMatrix * vertexUniforms.viewMatrix */ position;
-    out_normal = /*uniforms.normalMatrix */ in_normal;
-    out_lightDirection = vec3(1,1,1);//uniforms.lightPosition - float3(position);
+    gl_Position = vertexUniforms.projectionMatrix * vertexUniforms.viewMatrix * position;
+    out_normal = vertexUniforms.normalMatrix * in_normal;
+    out_lightDirection = vertexUniforms.lightPosition - vec3(position);
     out_texCoord = in_texCoord;
 }
 
@@ -36,7 +34,7 @@ void main()
 
 #version 450
 
-/*
+/* FIXME
 layout(binding=0) uniform FragmentUniforms {
     vec4 ambientColor;
 } fragmentUniforms;
@@ -48,26 +46,21 @@ layout(location=2) in vec2 in_texCoord;
 
 layout(location=0) out vec4 out_color;
 
-/*
-fragment float4 fragmentShader(
-    texture2d<float> texture [[texture(0)]],
-    texture2d<float> normalMap [[texture(1)]],
-    )
-*/
-
 void main()
 {
     /*
     constexpr sampler textureSampler(mag_filter::linear, min_filter::linear);
-    float4 color = texture.sample(textureSampler, in.texCoord);
-    float3 normal = normalize(normalMap.sample(textureSampler, in.texCoord).rgb * 2.0 - 1.0);
+    vec4 color = texture.sample(textureSampler, in.texCoord) * float4(1.0, 1.0, 0.7, 1.0);
+    */
+    vec4 color = vec4(in_texCoord, 0, 1);
 
-    float intensity = saturate(dot(normal, normalize(in.lightDirection)));
-    float attenuation = 0.5 * in.lightDistance;
+    vec3 lightDirection = in_lightDirection;
+    float lightDistance = length(lightDirection);
+    lightDirection /= lightDistance;
+
+    float intensity = clamp(dot(normalize(in_normal), lightDirection), 0, 1);
+    float attenuation = 0.5 * lightDistance;
     intensity = min(intensity / attenuation, 1.2);
 
-    return max(intensity * color, uniforms.ambientColor);
-    */
-
-    out_color = vec4(in_texCoord, 0.0, 1.0);
+    out_color = max(intensity * color, /*FIXME uniforms.ambientColor*/vec4(0, 0, 0, 0));
 }

@@ -2,9 +2,12 @@
 #include "Engine/Renderer/IRenderDevice.h"
 #include "Engine/Renderer/Vulkan/VulkanCommon.h"
 #include <memory>
+#include <vector>
 #include <glm/mat3x4.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
+
+class VulkanRenderBuffer;
 
 class VulkanRenderDevice : public IRenderDevice
 {
@@ -17,6 +20,7 @@ public:
     VkDevice nativeDevice() const { return mDevice; }
 
     glm::vec2 viewportSize() const override;
+    uint32_t currentBufferInFlight() const { return mNextImageIndex; }
 
     uint32_t findDeviceMemory(const VkMemoryRequirements& memory, VkMemoryPropertyFlags desiredFlags) const;
     VkDeviceMemory allocDeviceMemory(const VkMemoryRequirements& memory, VkMemoryPropertyFlags desiredFlags);
@@ -76,11 +80,18 @@ private:
     VkImage mDepthImage;
     VkImageView mDepthImageView;
     VkRenderPass mRenderPass;
+    VkDescriptorSetLayout mVertexUniformsLayout;
+    VkDescriptorPool mDescriptorPool;
+    VkPipelineLayout mCurrentPipelineLayout;
     VkPhysicalDeviceMemoryProperties mMemoryProperties;
     VertexUniforms mVertexUniforms;
     FragmentUniforms mFragmentUniforms;
     std::unique_ptr<VkImage[]> mPresentImages;
     std::unique_ptr<VkFramebuffer[]> mFramebuffers;
+    std::vector<std::unique_ptr<VulkanRenderBuffer>> mUsedVertexUniformBuffers;
+    std::vector<std::unique_ptr<VulkanRenderBuffer>> mFreeVertexUniformBuffers;
+    std::vector<VkDescriptorSet> mDescriptorSets;
+    uint32_t mImageCount;
     uint32_t mNextImageIndex;
     int mSurfaceWidth;
     int mSurfaceHeight;

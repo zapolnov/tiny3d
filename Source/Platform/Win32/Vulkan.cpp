@@ -90,7 +90,14 @@ bool initVulkan()
         !getVulkanAPI(hVulkanDll, "vkCmdBindVertexBuffers", vkCmdBindVertexBuffers) ||
         !getVulkanAPI(hVulkanDll, "vkCmdBindIndexBuffer", vkCmdBindIndexBuffer) ||
         !getVulkanAPI(hVulkanDll, "vkCmdDraw", vkCmdDraw) ||
-        !getVulkanAPI(hVulkanDll, "vkCmdDrawIndexed", vkCmdDrawIndexed))
+        !getVulkanAPI(hVulkanDll, "vkCmdDrawIndexed", vkCmdDrawIndexed) ||
+        !getVulkanAPI(hVulkanDll, "vkCreateDescriptorSetLayout", vkCreateDescriptorSetLayout) ||
+        !getVulkanAPI(hVulkanDll, "vkDestroyDescriptorSetLayout", vkDestroyDescriptorSetLayout) ||
+        !getVulkanAPI(hVulkanDll, "vkCreateDescriptorPool", vkCreateDescriptorPool) ||
+        !getVulkanAPI(hVulkanDll, "vkDestroyDescriptorPool", vkDestroyDescriptorPool) ||
+        !getVulkanAPI(hVulkanDll, "vkAllocateDescriptorSets", vkAllocateDescriptorSets) ||
+        !getVulkanAPI(hVulkanDll, "vkUpdateDescriptorSets", vkUpdateDescriptorSets) ||
+        !getVulkanAPI(hVulkanDll, "vkCmdBindDescriptorSets", vkCmdBindDescriptorSets))
         return false;
 
     // Enumerate avaiable layers
