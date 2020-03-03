@@ -11,6 +11,10 @@ layout(binding=0) uniform VertexUniforms {
     vec3 lightPosition;
 } vertexUniforms;
 
+layout(binding=4) uniform Matrices {
+    mat4 matrices[255];
+} matrices;
+
 layout(location=0) in vec3 in_position;
 layout(location=1) in vec3 in_normal;
 layout(location=2) in vec3 in_tangent;
@@ -25,15 +29,10 @@ void main()
 {
     mat4 viewProjectionMatrix = vertexUniforms.projectionMatrix * vertexUniforms.viewMatrix * vertexUniforms.modelMatrix;
 
-    // FIXME
-    //mat4 boneTransform = matrices[in_boneIndices.x] * in_boneWeights.x;
-    //boneTransform += matrices[in_boneIndices.y] * in_boneWeights.y;
-    //boneTransform += matrices[in_boneIndices.z] * in_boneWeights.z;
-    //boneTransform += matrices[in_boneIndices.w] * in_boneWeights.w;
-    mat4 boneTransform = mat4(1.0, 0.0, 0.0, 0.0,
-        0.0, 1.0, 0.0, 0.0,
-        0.0, 0.0, 1.0, 0.0,
-        0.0, 0.0, 0.0, 1.0);
+    mat4 boneTransform = matrices.matrices[in_boneIndices.x] * in_boneWeights.x;
+    boneTransform += matrices.matrices[in_boneIndices.y] * in_boneWeights.y;
+    boneTransform += matrices.matrices[in_boneIndices.z] * in_boneWeights.z;
+    boneTransform += matrices.matrices[in_boneIndices.w] * in_boneWeights.w;
 
     gl_Position = viewProjectionMatrix * boneTransform * vec4(in_position, 1.0);
     out_texCoord = in_texCoord;
@@ -44,7 +43,7 @@ void main()
 
 #version 450
 
-layout(binding=1) uniform sampler2D textureSampler;
+layout(binding=2) uniform sampler2D textureSampler;
 
 layout(location=0) in vec2 in_texCoord;
 

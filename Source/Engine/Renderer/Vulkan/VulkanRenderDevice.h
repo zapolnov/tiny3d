@@ -85,6 +85,9 @@ private:
     VkPipelineLayout mCurrentPipelineLayout;
     VkImageView mCurrentImageView[2];
     VkSampler mCurrentSampler[2];
+    VkBuffer mCurrentSkinningBuffer;
+    unsigned mCurrentSkinningBufferOffset;
+    unsigned mCurrentSkinningBufferSize;
     VkPhysicalDeviceMemoryProperties mMemoryProperties;
     VertexUniforms mVertexUniforms;
     FragmentUniforms mFragmentUniforms; // should go immediately after mVertexUniforms

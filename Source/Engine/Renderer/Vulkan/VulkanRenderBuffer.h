@@ -11,6 +11,7 @@ public:
     VulkanRenderBuffer(VulkanRenderDevice* device, const void* data, size_t size);
     ~VulkanRenderBuffer();
 
+    size_t size() const { return mSize; }
     const VkBuffer& nativeBuffer() const { return mBuffer; }
 
     unsigned uploadData(const void* data) override;

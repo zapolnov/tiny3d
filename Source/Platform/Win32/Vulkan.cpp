@@ -146,7 +146,7 @@ bool initVulkan()
     if (enableDebugReport) {
         PFN_vkCreateDebugReportCallbackEXT vkCreateDebugReportCallbackEXT;
         if (getVulkanProc("vkCreateDebugReportCallbackEXT", vkCreateDebugReportCallbackEXT)) {
-            VkDebugReportCallbackCreateInfoEXT info;
+            VkDebugReportCallbackCreateInfoEXT info = {};
             info.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT;
             info.pNext = nullptr;
             info.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
