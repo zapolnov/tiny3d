@@ -64,10 +64,13 @@ bool initVulkan()
         !getVulkanAPI(hVulkanDll, "vkDestroySemaphore", vkDestroySemaphore) ||
         !getVulkanAPI(hVulkanDll, "vkResetCommandBuffer", vkResetCommandBuffer) ||
         !getVulkanAPI(hVulkanDll, "vkCreateImageView", vkCreateImageView) ||
+        !getVulkanAPI(hVulkanDll, "vkDestroyImageView", vkDestroyImageView) ||
         !getVulkanAPI(hVulkanDll, "vkGetPhysicalDeviceMemoryProperties", vkGetPhysicalDeviceMemoryProperties) ||
         !getVulkanAPI(hVulkanDll, "vkCreateImage", vkCreateImage) ||
+        !getVulkanAPI(hVulkanDll, "vkDestroyImage", vkDestroyImage) ||
         !getVulkanAPI(hVulkanDll, "vkGetImageMemoryRequirements", vkGetImageMemoryRequirements) ||
         !getVulkanAPI(hVulkanDll, "vkAllocateMemory", vkAllocateMemory) ||
+        !getVulkanAPI(hVulkanDll, "vkFreeMemory", vkFreeMemory) ||
         !getVulkanAPI(hVulkanDll, "vkBindImageMemory", vkBindImageMemory) ||
         !getVulkanAPI(hVulkanDll, "vkCreateRenderPass", vkCreateRenderPass) ||
         !getVulkanAPI(hVulkanDll, "vkDestroyRenderPass", vkDestroyRenderPass) ||
@@ -97,7 +100,10 @@ bool initVulkan()
         !getVulkanAPI(hVulkanDll, "vkDestroyDescriptorPool", vkDestroyDescriptorPool) ||
         !getVulkanAPI(hVulkanDll, "vkAllocateDescriptorSets", vkAllocateDescriptorSets) ||
         !getVulkanAPI(hVulkanDll, "vkUpdateDescriptorSets", vkUpdateDescriptorSets) ||
-        !getVulkanAPI(hVulkanDll, "vkCmdBindDescriptorSets", vkCmdBindDescriptorSets))
+        !getVulkanAPI(hVulkanDll, "vkCmdBindDescriptorSets", vkCmdBindDescriptorSets) ||
+        !getVulkanAPI(hVulkanDll, "vkCmdCopyBufferToImage", vkCmdCopyBufferToImage) ||
+        !getVulkanAPI(hVulkanDll, "vkCreateSampler", vkCreateSampler) ||
+        !getVulkanAPI(hVulkanDll, "vkDestroySampler", vkDestroySampler))
         return false;
 
     // Enumerate avaiable layers

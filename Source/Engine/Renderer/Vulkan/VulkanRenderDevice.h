@@ -80,9 +80,11 @@ private:
     VkImage mDepthImage;
     VkImageView mDepthImageView;
     VkRenderPass mRenderPass;
-    VkDescriptorSetLayout mVertexUniformsLayout;
+    VkDescriptorSetLayout mDescriptorSetLayout;
     VkDescriptorPool mDescriptorPool;
     VkPipelineLayout mCurrentPipelineLayout;
+    VkImageView mCurrentImageView;
+    VkSampler mCurrentSampler;
     VkPhysicalDeviceMemoryProperties mMemoryProperties;
     VertexUniforms mVertexUniforms;
     FragmentUniforms mFragmentUniforms;
