@@ -1,4 +1,5 @@
 #import "Engine/Renderer/IPipelineState.h"
+#import "Engine/Renderer/IRenderDevice.h"
 #import <Metal/Metal.h>
 #import <MetalKit/MetalKit.h>
 
