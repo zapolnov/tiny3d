@@ -2,16 +2,43 @@
 #include "Engine/Core/Engine.h"
 #include "Engine/Renderer/Vulkan/VulkanRenderDevice.h"
 #include "Engine/Renderer/Vulkan/VulkanCommon.h"
+#include "Engine/Input/InputManager.h"
 #include "Game/Game.h"
 
 HWND hWnd;
 static std::unique_ptr<Engine> engine;
+
+static Key mapKey(WPARAM code)
+{
+    switch (code) {
+        case VK_LEFT: return KeyLeft;
+        case VK_RIGHT: return KeyRight;
+        case VK_UP: return KeyUp;
+        case VK_DOWN: return KeyDown;
+    }
+
+    return KeyNone;
+}
 
 static LRESULT CALLBACK MainWindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch (msg) {
         case WM_ERASEBKGND:
             return true;
+
+        case WM_KEYDOWN: {
+            Key key = mapKey(wParam);
+            if (key != KeyNone)
+                engine->inputManager()->injectKeyPress(key);
+            break;
+        }
+
+        case WM_KEYUP: {
+            Key key = mapKey(wParam);
+            if (key != KeyNone)
+                engine->inputManager()->injectKeyRelease(key);
+            break;
+        }
 
         case WM_PAINT: {
             PAINTSTRUCT ps;
