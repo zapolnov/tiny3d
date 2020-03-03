@@ -16,33 +16,26 @@ layout(location=1) in vec3 in_normal;
 layout(location=2) in vec3 in_tangent;
 layout(location=3) in vec3 in_bitangent;
 layout(location=4) in vec2 in_texCoord;
+layout(location=5) in vec4 in_boneWeights;
+layout(location=6) in uvec4 in_boneIndices;
 
-layout(location=0) out vec3 out_normal;
-layout(location=1) out vec3 out_lightDirection;
-layout(location=2) out float out_lightDistance;
-layout(location=3) out vec2 out_texCoord;
+layout(location=0) out vec2 out_texCoord;
 
 void main()
 {
-    vec4 position = vertexUniforms.modelMatrix * vec4(in_position, 1.0);
+    mat4 viewProjectionMatrix = vertexUniforms.projectionMatrix * vertexUniforms.viewMatrix * vertexUniforms.modelMatrix;
 
-    vec3 tangent = normalize(vertexUniforms.normalMatrix * in_tangent);
-    vec3 bitangent = normalize(vertexUniforms.normalMatrix * in_bitangent);
-    vec3 normal = normalize(vertexUniforms.normalMatrix * in_normal);
-    mat3 tbn = mat3(
-            vec3(tangent.x, bitangent.x, normal.x),
-            vec3(tangent.y, bitangent.y, normal.y),
-            vec3(tangent.z, bitangent.z, normal.z)
-        );
+    // FIXME
+    //mat4 boneTransform = matrices[in_boneIndices.x] * in_boneWeights.x;
+    //boneTransform += matrices[in_boneIndices.y] * in_boneWeights.y;
+    //boneTransform += matrices[in_boneIndices.z] * in_boneWeights.z;
+    //boneTransform += matrices[in_boneIndices.w] * in_boneWeights.w;
+    mat4 boneTransform = mat4(1.0, 0.0, 0.0, 0.0,
+        0.0, 1.0, 0.0, 0.0,
+        0.0, 0.0, 1.0, 0.0,
+        0.0, 0.0, 0.0, 1.0);
 
-    vec3 lightDirection = vertexUniforms.lightPosition - vec3(position);
-    float lightDistance = length(lightDirection);
-    lightDirection /= lightDistance;
-
-    gl_Position = vertexUniforms.projectionMatrix * vertexUniforms.viewMatrix * position;
-    out_normal = tbn * normal;
-    out_lightDirection = tbn * lightDirection;
-    out_lightDistance = lightDistance;
+    gl_Position = viewProjectionMatrix * boneTransform * vec4(in_position, 1.0);
     out_texCoord = in_texCoord;
 }
 
@@ -51,37 +44,21 @@ void main()
 
 #version 450
 
+/* FIXME
 layout(binding=0) uniform FragmentUniforms {
     vec4 ambientColor;
 } fragmentUniforms;
+*/
 
-layout(location=0) in vec3 in_normal;
-layout(location=1) in vec3 in_lightDirection;
-layout(location=2) in float in_lightDistance;
-layout(location=3) in vec2 in_texCoord;
+layout(location=0) in vec2 in_texCoord;
 
 layout(location=0) out vec4 out_color;
-
-/*
-fragment float4 fragmentShader(
-    texture2d<float> texture [[texture(0)]],
-    texture2d<float> normalMap [[texture(1)]],
-    )
-*/
 
 void main()
 {
     /*
     constexpr sampler textureSampler(mag_filter::linear, min_filter::linear);
-    float4 color = texture.sample(textureSampler, in.texCoord);
-    float3 normal = normalize(normalMap.sample(textureSampler, in.texCoord).rgb * 2.0 - 1.0);
-
-    float intensity = saturate(dot(normal, normalize(in.lightDirection)));
-    float attenuation = 0.5 * in.lightDistance;
-    intensity = min(intensity / attenuation, 1.2);
-
-    return max(intensity * color, uniforms.ambientColor);
+    return texture.sample(textureSampler, in_texCoord);
     */
-
-    out_color = vec4(in_normal, 1.0);
+    out_color = vec4(in_texCoord, 0.0, 1.0);
 }

@@ -763,9 +763,9 @@ std::unique_ptr<IPipelineState> VulkanRenderDevice::createPipelineState(Primitiv
 
     VkViewport viewport = {};
     viewport.x = 0;
-    viewport.y = 0;
+    viewport.y = mSurfaceHeight;
     viewport.width = mSurfaceWidth;
-    viewport.height = mSurfaceHeight;
+    viewport.height = -mSurfaceHeight;
     viewport.minDepth = 0;
     viewport.maxDepth = 1;
 

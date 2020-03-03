@@ -136,7 +136,7 @@ bool vulkanCreateInstance(const std::vector<const char*>& enabledExtensions)
     appInfo.applicationVersion = 1;
     appInfo.pEngineName = nullptr;
     appInfo.engineVersion = 1;
-    appInfo.apiVersion = VK_MAKE_VERSION(1, 0, 0);
+    appInfo.apiVersion = VK_MAKE_VERSION(1, 1, 0);
 
     VkInstanceCreateInfo instanceInfo;
     instanceInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
