@@ -4,14 +4,16 @@
 VulkanRenderBuffer::VulkanRenderBuffer(VulkanRenderDevice* device, size_t size, uint32_t maxBuffersInFlight)
     : mDevice(device)
     , mSize(size)
+    , mAlignedSize((size + 255) & ~255)
     , mMaxBuffersInFlight(maxBuffersInFlight)
 {
-    create(mSize * mMaxBuffersInFlight);
+    create(mAlignedSize * mMaxBuffersInFlight);
 }
 
 VulkanRenderBuffer::VulkanRenderBuffer(VulkanRenderDevice* device, const void* data, size_t size)
     : mDevice(device)
     , mSize(size)
+    , mAlignedSize((size + 255) & ~255)
     , mMaxBuffersInFlight(1)
 {
     create(mSize);
@@ -26,7 +28,7 @@ VulkanRenderBuffer::~VulkanRenderBuffer()
 
 unsigned VulkanRenderBuffer::uploadData(const void* data)
 {
-    unsigned bufferOffset = mSize * mDevice->currentBufferInFlight();
+    unsigned bufferOffset = mAlignedSize * mDevice->currentBufferInFlight();
     copyData(data, bufferOffset, mSize);
     return bufferOffset;
 }

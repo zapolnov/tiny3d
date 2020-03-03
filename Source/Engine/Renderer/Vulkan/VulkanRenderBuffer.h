@@ -20,6 +20,7 @@ private:
     VkBuffer mBuffer;
     VkDeviceMemory mDeviceMemory;
     size_t mSize;
+    size_t mAlignedSize;
     uint32_t mMaxBuffersInFlight;
 
     void create(size_t size);

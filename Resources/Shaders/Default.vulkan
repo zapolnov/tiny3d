@@ -51,14 +51,12 @@ void main()
 
 #version 450
 
-/* FIXME
-layout(binding=0) uniform FragmentUniforms {
+layout(binding=1) uniform FragmentUniforms {
     vec4 ambientColor;
 } fragmentUniforms;
-*/
 
-layout(binding=1) uniform sampler2D textureSampler;
-layout(binding=2) uniform sampler2D normalMapSampler;
+layout(binding=2) uniform sampler2D textureSampler;
+layout(binding=3) uniform sampler2D normalMapSampler;
 
 layout(location=0) in vec3 in_normal;
 layout(location=1) in vec3 in_lightDirection;
@@ -76,5 +74,5 @@ void main()
     float attenuation = 0.5 * in_lightDistance;
     intensity = min(intensity / attenuation, 1.2);
 
-    out_color = max(intensity * color, /*FIXME uniforms.ambientColor*/vec4(0, 0, 0, 0));
+    out_color = max(intensity * color, fragmentUniforms.ambientColor);
 }

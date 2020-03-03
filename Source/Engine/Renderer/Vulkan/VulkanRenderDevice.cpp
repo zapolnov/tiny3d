@@ -501,36 +501,42 @@ VulkanRenderDevice::VulkanRenderDevice()
 
     // Create descriptor set layouts
 
-    VkDescriptorSetLayoutBinding descriptorSetLayoutBindings[3] = {};
+    VkDescriptorSetLayoutBinding descriptorSetLayoutBindings[4] = {};
     descriptorSetLayoutBindings[0].binding = 0;
     descriptorSetLayoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     descriptorSetLayoutBindings[0].descriptorCount = 1;
     descriptorSetLayoutBindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
     descriptorSetLayoutBindings[1].binding = 1;
-    descriptorSetLayoutBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    descriptorSetLayoutBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     descriptorSetLayoutBindings[1].descriptorCount = 1;
     descriptorSetLayoutBindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
     descriptorSetLayoutBindings[2].binding = 2;
     descriptorSetLayoutBindings[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     descriptorSetLayoutBindings[2].descriptorCount = 1;
     descriptorSetLayoutBindings[2].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+    descriptorSetLayoutBindings[3].binding = 3;
+    descriptorSetLayoutBindings[3].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    descriptorSetLayoutBindings[3].descriptorCount = 1;
+    descriptorSetLayoutBindings[3].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
     VkDescriptorSetLayoutCreateInfo layoutInfo = {};
     layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    layoutInfo.bindingCount = 3;
+    layoutInfo.bindingCount = 4;
     layoutInfo.pBindings = descriptorSetLayoutBindings;
 
     result = vkCreateDescriptorSetLayout(mDevice, &layoutInfo, nullptr, &mDescriptorSetLayout);
     if (result != VK_SUCCESS) {
-        vulkanError("Unable to create descriptor set layout for vertex uniforms.");
+        vulkanError("Unable to create descriptor set layout.");
         return;
     }
 
     // Create descriptor sets
 
-    VkDescriptorPoolSize poolSizes[3] = {};
+    VkDescriptorPoolSize poolSizes[4] = {};
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     poolSizes[0].descriptorCount = mImageCount;
+    poolSizes[1].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    poolSizes[1].descriptorCount = mImageCount;
     poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     poolSizes[1].descriptorCount = mImageCount;
     poolSizes[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -538,7 +544,7 @@ VulkanRenderDevice::VulkanRenderDevice()
 
     VkDescriptorPoolCreateInfo poolInfo = {};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    poolInfo.poolSizeCount = 3;
+    poolInfo.poolSizeCount = 4;
     poolInfo.pPoolSizes = poolSizes;
     poolInfo.maxSets = mImageCount;
 
@@ -570,15 +576,15 @@ VulkanRenderDevice::VulkanRenderDevice()
     mVertexUniforms.normalMatrix = glm::mat3x4(1.0f);
     mVertexUniforms.lightPosition = glm::vec4(0.0f);
 
-    mFragmentUniforms.ambientColor = glm::vec4(0.0f);
+    mFragmentUniforms.ambientColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
     mInitialized = true;
 }
 
 VulkanRenderDevice::~VulkanRenderDevice()
 {
-    mUsedVertexUniformBuffers.clear();
-    mFreeVertexUniformBuffers.clear();
+    mUsedUniformBuffers.clear();
+    mFreeUniformBuffers.clear();
 
     if (mRenderPass)
         vkDestroyRenderPass(mDevice, mRenderPass, nullptr);
@@ -1144,29 +1150,40 @@ void VulkanRenderDevice::endFrame()
     mPresentCompleteSemaphore = nullptr;
     mRenderingCompleteSemaphore = nullptr;
 
-    while (!mUsedVertexUniformBuffers.empty()) {
-        auto buffer = std::move(mUsedVertexUniformBuffers.back());
-        mUsedVertexUniformBuffers.pop_back();
-        mFreeVertexUniformBuffers.emplace_back(std::move(buffer));
+    while (!mUsedUniformBuffers.empty()) {
+        auto buffer = std::move(mUsedUniformBuffers.back());
+        mUsedUniformBuffers.pop_back();
+        mFreeUniformBuffers.emplace_back(std::move(buffer));
     }
+}
+
+std::unique_ptr<VulkanRenderBuffer> VulkanRenderDevice::allocUniformBuffer()
+{
+    std::unique_ptr<VulkanRenderBuffer> uniformBuffer;
+    if (mFreeUniformBuffers.empty()) {
+        uniformBuffer = std::make_unique<VulkanRenderBuffer>(this,
+            sizeof(mVertexUniforms) + sizeof(mFragmentUniforms), mImageCount);
+    } else {
+        uniformBuffer = std::move(mFreeUniformBuffers.back());
+        mFreeUniformBuffers.pop_back();
+    }
+    return uniformBuffer;
 }
 
 void VulkanRenderDevice::bindUniforms()
 {
-    std::unique_ptr<VulkanRenderBuffer> uniformBuffer;
-    if (mFreeVertexUniformBuffers.empty())
-        uniformBuffer = std::make_unique<VulkanRenderBuffer>(this, sizeof(mVertexUniforms), mImageCount);
-    else {
-        uniformBuffer = std::move(mFreeVertexUniformBuffers.back());
-        mFreeVertexUniformBuffers.pop_back();
-    }
+    auto uniformBuffer = allocUniformBuffer();
 
+    // FIXME: hack!!! copies both mVertexUniforms and mFragmentUniforms into the uniform buffer
     unsigned offset = uniformBuffer->uploadData(&mVertexUniforms);
 
-    VkDescriptorBufferInfo bufferInfo = {};
-    bufferInfo.buffer = uniformBuffer->nativeBuffer();
-    bufferInfo.offset = offset;
-    bufferInfo.range = sizeof(mVertexUniforms);
+    VkDescriptorBufferInfo bufferInfo[2] = {};
+    bufferInfo[0].buffer = uniformBuffer->nativeBuffer();
+    bufferInfo[0].offset = offset;
+    bufferInfo[0].range = sizeof(mVertexUniforms);
+    bufferInfo[1].buffer = uniformBuffer->nativeBuffer();
+    bufferInfo[1].offset = offset + sizeof(mVertexUniforms);
+    bufferInfo[1].range = sizeof(mFragmentUniforms);
 
     VkDescriptorImageInfo imageInfo[2] = {};
     imageInfo[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -1176,32 +1193,39 @@ void VulkanRenderDevice::bindUniforms()
     imageInfo[1].imageView = mCurrentImageView[1];
     imageInfo[1].sampler = mCurrentSampler[1];
 
-    VkWriteDescriptorSet descriptorWrites[3] = {};
+    VkWriteDescriptorSet descriptorWrites[4] = {};
     descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     descriptorWrites[0].dstSet = mDescriptorSets[mNextImageIndex];
     descriptorWrites[0].dstBinding = 0;
     descriptorWrites[0].dstArrayElement = 0;
     descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     descriptorWrites[0].descriptorCount = 1;
-    descriptorWrites[0].pBufferInfo = &bufferInfo;
+    descriptorWrites[0].pBufferInfo = &bufferInfo[0];
     descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     descriptorWrites[1].dstSet = mDescriptorSets[mNextImageIndex];
     descriptorWrites[1].dstBinding = 1;
     descriptorWrites[1].dstArrayElement = 0;
-    descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     descriptorWrites[1].descriptorCount = 1;
-    descriptorWrites[1].pImageInfo = &imageInfo[0];
+    descriptorWrites[1].pBufferInfo = &bufferInfo[1];
     descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     descriptorWrites[2].dstSet = mDescriptorSets[mNextImageIndex];
     descriptorWrites[2].dstBinding = 2;
     descriptorWrites[2].dstArrayElement = 0;
     descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     descriptorWrites[2].descriptorCount = 1;
-    descriptorWrites[2].pImageInfo = &imageInfo[1];
-    vkUpdateDescriptorSets(mDevice, (mCurrentImageView[1] ? 3 : 2), descriptorWrites, 0, nullptr);
+    descriptorWrites[2].pImageInfo = &imageInfo[0];
+    descriptorWrites[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrites[3].dstSet = mDescriptorSets[mNextImageIndex];
+    descriptorWrites[3].dstBinding = 3;
+    descriptorWrites[3].dstArrayElement = 0;
+    descriptorWrites[3].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    descriptorWrites[3].descriptorCount = 1;
+    descriptorWrites[3].pImageInfo = &imageInfo[1];
+    vkUpdateDescriptorSets(mDevice, (mCurrentImageView[1] ? 4 : 3), descriptorWrites, 0, nullptr);
 
     vkCmdBindDescriptorSets(mDrawCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
         mCurrentPipelineLayout, 0, 1, &mDescriptorSets[mNextImageIndex], 0, nullptr);
 
-    mUsedVertexUniformBuffers.emplace_back(std::move(uniformBuffer));
+    mUsedUniformBuffers.emplace_back(std::move(uniformBuffer));
 }

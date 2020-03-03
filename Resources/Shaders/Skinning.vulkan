@@ -44,11 +44,7 @@ void main()
 
 #version 450
 
-/* FIXME
-layout(binding=0) uniform FragmentUniforms {
-    vec4 ambientColor;
-} fragmentUniforms;
-*/
+layout(binding=1) uniform sampler2D textureSampler;
 
 layout(location=0) in vec2 in_texCoord;
 
@@ -56,9 +52,5 @@ layout(location=0) out vec4 out_color;
 
 void main()
 {
-    /*
-    constexpr sampler textureSampler(mag_filter::linear, min_filter::linear);
-    return texture.sample(textureSampler, in_texCoord);
-    */
-    out_color = vec4(in_texCoord, 0.0, 1.0);
+    out_color = texture(textureSampler, in_texCoord);
 }

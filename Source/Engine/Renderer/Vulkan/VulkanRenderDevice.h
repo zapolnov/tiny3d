@@ -87,16 +87,17 @@ private:
     VkSampler mCurrentSampler[2];
     VkPhysicalDeviceMemoryProperties mMemoryProperties;
     VertexUniforms mVertexUniforms;
-    FragmentUniforms mFragmentUniforms;
+    FragmentUniforms mFragmentUniforms; // should go immediately after mVertexUniforms
     std::unique_ptr<VkImage[]> mPresentImages;
     std::unique_ptr<VkFramebuffer[]> mFramebuffers;
-    std::vector<std::unique_ptr<VulkanRenderBuffer>> mUsedVertexUniformBuffers;
-    std::vector<std::unique_ptr<VulkanRenderBuffer>> mFreeVertexUniformBuffers;
+    std::vector<std::unique_ptr<VulkanRenderBuffer>> mUsedUniformBuffers;
+    std::vector<std::unique_ptr<VulkanRenderBuffer>> mFreeUniformBuffers;
     std::vector<VkDescriptorSet> mDescriptorSets;
     uint32_t mImageCount;
     uint32_t mNextImageIndex;
     int mSurfaceWidth;
     int mSurfaceHeight;
 
+    std::unique_ptr<VulkanRenderBuffer> allocUniformBuffer();
     void bindUniforms();
 };
