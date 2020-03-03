@@ -30,8 +30,8 @@ VulkanRenderDevice::VulkanRenderDevice()
     , mDescriptorSetLayout(nullptr)
     , mDescriptorPool(nullptr)
     , mCurrentPipelineLayout(nullptr)
-    , mCurrentImageView(nullptr)
-    , mCurrentSampler(nullptr)
+    , mCurrentImageView{}
+    , mCurrentSampler{}
 {
     VkPhysicalDevice physicalDevice;
     VkPhysicalDeviceProperties physicalDeviceProperties;
@@ -501,7 +501,7 @@ VulkanRenderDevice::VulkanRenderDevice()
 
     // Create descriptor set layouts
 
-    VkDescriptorSetLayoutBinding descriptorSetLayoutBindings[2] = {};
+    VkDescriptorSetLayoutBinding descriptorSetLayoutBindings[3] = {};
     descriptorSetLayoutBindings[0].binding = 0;
     descriptorSetLayoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     descriptorSetLayoutBindings[0].descriptorCount = 1;
@@ -510,10 +510,14 @@ VulkanRenderDevice::VulkanRenderDevice()
     descriptorSetLayoutBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     descriptorSetLayoutBindings[1].descriptorCount = 1;
     descriptorSetLayoutBindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+    descriptorSetLayoutBindings[2].binding = 2;
+    descriptorSetLayoutBindings[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    descriptorSetLayoutBindings[2].descriptorCount = 1;
+    descriptorSetLayoutBindings[2].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
     VkDescriptorSetLayoutCreateInfo layoutInfo = {};
     layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    layoutInfo.bindingCount = 2;
+    layoutInfo.bindingCount = 3;
     layoutInfo.pBindings = descriptorSetLayoutBindings;
 
     result = vkCreateDescriptorSetLayout(mDevice, &layoutInfo, nullptr, &mDescriptorSetLayout);
@@ -524,15 +528,17 @@ VulkanRenderDevice::VulkanRenderDevice()
 
     // Create descriptor sets
 
-    VkDescriptorPoolSize poolSizes[2] = {};
+    VkDescriptorPoolSize poolSizes[3] = {};
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     poolSizes[0].descriptorCount = mImageCount;
     poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     poolSizes[1].descriptorCount = mImageCount;
+    poolSizes[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    poolSizes[2].descriptorCount = mImageCount;
 
     VkDescriptorPoolCreateInfo poolInfo = {};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    poolInfo.poolSizeCount = 2;
+    poolInfo.poolSizeCount = 3;
     poolInfo.pPoolSizes = poolSizes;
     poolInfo.maxSets = mImageCount;
 
@@ -990,10 +996,9 @@ void VulkanRenderDevice::setTexture(int index, const std::unique_ptr<ITexture>& 
     assert(dynamic_cast<VulkanTexture*>(texture.get()) != nullptr);
     auto vulkanTexture = static_cast<VulkanTexture*>(texture.get());
 
-    if (index == 0) {
-        mCurrentImageView = vulkanTexture->nativeImageView();
-        mCurrentSampler = vulkanTexture->nativeSampler();
-    }
+    assert(index >= 0 && index <= 1);
+    mCurrentImageView[index] = vulkanTexture->nativeImageView();
+    mCurrentSampler[index] = vulkanTexture->nativeSampler();
 }
 
 void VulkanRenderDevice::setPipelineState(const std::unique_ptr<IPipelineState>& state)
@@ -1163,12 +1168,15 @@ void VulkanRenderDevice::bindUniforms()
     bufferInfo.offset = offset;
     bufferInfo.range = sizeof(mVertexUniforms);
 
-    VkDescriptorImageInfo imageInfo = {};
-    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    imageInfo.imageView = mCurrentImageView;
-    imageInfo.sampler = mCurrentSampler;
+    VkDescriptorImageInfo imageInfo[2] = {};
+    imageInfo[0].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    imageInfo[0].imageView = mCurrentImageView[0];
+    imageInfo[0].sampler = mCurrentSampler[0];
+    imageInfo[1].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    imageInfo[1].imageView = mCurrentImageView[1];
+    imageInfo[1].sampler = mCurrentSampler[1];
 
-    VkWriteDescriptorSet descriptorWrites[2] = {};
+    VkWriteDescriptorSet descriptorWrites[3] = {};
     descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     descriptorWrites[0].dstSet = mDescriptorSets[mNextImageIndex];
     descriptorWrites[0].dstBinding = 0;
@@ -1182,8 +1190,15 @@ void VulkanRenderDevice::bindUniforms()
     descriptorWrites[1].dstArrayElement = 0;
     descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     descriptorWrites[1].descriptorCount = 1;
-    descriptorWrites[1].pImageInfo = &imageInfo;
-    vkUpdateDescriptorSets(mDevice, 2, descriptorWrites, 0, nullptr);
+    descriptorWrites[1].pImageInfo = &imageInfo[0];
+    descriptorWrites[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    descriptorWrites[2].dstSet = mDescriptorSets[mNextImageIndex];
+    descriptorWrites[2].dstBinding = 2;
+    descriptorWrites[2].dstArrayElement = 0;
+    descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    descriptorWrites[2].descriptorCount = 1;
+    descriptorWrites[2].pImageInfo = &imageInfo[1];
+    vkUpdateDescriptorSets(mDevice, (mCurrentImageView[1] ? 3 : 2), descriptorWrites, 0, nullptr);
 
     vkCmdBindDescriptorSets(mDrawCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
         mCurrentPipelineLayout, 0, 1, &mDescriptorSets[mNextImageIndex], 0, nullptr);

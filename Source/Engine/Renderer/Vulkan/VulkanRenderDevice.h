@@ -83,8 +83,8 @@ private:
     VkDescriptorSetLayout mDescriptorSetLayout;
     VkDescriptorPool mDescriptorPool;
     VkPipelineLayout mCurrentPipelineLayout;
-    VkImageView mCurrentImageView;
-    VkSampler mCurrentSampler;
+    VkImageView mCurrentImageView[2];
+    VkSampler mCurrentSampler[2];
     VkPhysicalDeviceMemoryProperties mMemoryProperties;
     VertexUniforms mVertexUniforms;
     FragmentUniforms mFragmentUniforms;
