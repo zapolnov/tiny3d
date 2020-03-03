@@ -43,6 +43,7 @@ set(SOURCES
     MachineIndependent/propagateNoContraction.cpp
     GenericCodeGen/CodeGen.cpp
     GenericCodeGen/Link.cpp
+    ../StandAlone/ResourceLimits.cpp
     CInterface/glslang_c_interface.cpp)
 
 set(HEADERS
@@ -83,10 +84,10 @@ set(HEADERS
 glslang_pch(SOURCES MachineIndependent/pch.cpp)
 
 add_library(glslang ${LIB_TYPE} ${BISON_GLSLParser_OUTPUT_SOURCE} ${SOURCES} ${HEADERS})
-set_property(TARGET glslang PROPERTY FOLDER glslang)
+set_property(TARGET glslang PROPERTY FOLDER "libs/glslang")
 set_property(TARGET glslang PROPERTY POSITION_INDEPENDENT_CODE ON)
-target_link_libraries(glslang OGLCompiler OSDependent)
-target_include_directories(glslang PUBLIC 
+target_link_libraries(glslang OGLCompiler OSDependent SPIRV)
+target_include_directories(glslang PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Include"
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 

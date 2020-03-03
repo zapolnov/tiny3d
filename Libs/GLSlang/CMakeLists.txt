@@ -10,13 +10,13 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Adhere to GNU filesystem layout conventions
-include(GNUInstallDirs)
+#include(GNUInstallDirs)
 
 # Needed for CMAKE_DEPENDENT_OPTION macro
 include(CMakeDependentOption)
 
-option(BUILD_SHARED_LIBS "Build Shared Libraries" OFF)
-option(BUILD_EXTERNAL "Build external dependencies in /External" ON)
+set(BUILD_SHARED_LIBS OFF)
+set(BUILD_EXTERNAL OFF)
 
 set(LIB_TYPE STATIC)
 
@@ -24,48 +24,32 @@ if(BUILD_SHARED_LIBS)
     set(LIB_TYPE SHARED)
 endif()
 
-option(SKIP_GLSLANG_INSTALL "Skip installation" ${SKIP_GLSLANG_INSTALL})
+set(SKIP_GLSLANG_INSTALL ON)
 if(NOT ${SKIP_GLSLANG_INSTALL})
   set(ENABLE_GLSLANG_INSTALL ON)
 endif()
-option(ENABLE_SPVREMAPPER "Enables building of SPVRemapper" ON)
+set(ENABLE_SPVREMAPPER OFF)
 
-option(ENABLE_GLSLANG_BINARIES "Builds glslangValidator and spirv-remap" ON)
+set(ENABLE_GLSLANG_BINARIES OFF)
 
-option(ENABLE_GLSLANG_JS
-    "If using Emscripten, build glslang.js. Otherwise, builds a sample executable for binary-size testing." OFF)
-CMAKE_DEPENDENT_OPTION(ENABLE_GLSLANG_WEBMIN
-    "Reduces glslang to minimum needed for web use"
-    OFF "ENABLE_GLSLANG_JS"
-    OFF)
-CMAKE_DEPENDENT_OPTION(ENABLE_GLSLANG_WEBMIN_DEVEL
-    "For ENABLE_GLSLANG_WEBMIN builds, enables compilation error messages"
-    OFF "ENABLE_GLSLANG_WEBMIN"
-    OFF)
-CMAKE_DEPENDENT_OPTION(ENABLE_EMSCRIPTEN_SINGLE_FILE
-    "If using Emscripten, enables SINGLE_FILE build"
-    OFF "ENABLE_GLSLANG_JS AND EMSCRIPTEN"
-    OFF)
-CMAKE_DEPENDENT_OPTION(ENABLE_EMSCRIPTEN_ENVIRONMENT_NODE
-    "If using Emscripten, builds to run on Node instead of Web"
-    OFF "ENABLE_GLSLANG_JS AND EMSCRIPTEN"
-    OFF)
+set(ENABLE_GLSLANG_JS OFF)
+set(ENABLE_GLSLANG_WEBMIN OFF)
+set(ENABLE_GLSLANG_WEBMIN_DEVEL OFF)
+set(ENABLE_EMSCRIPTEN_SINGLE_FILE OFF)
+set(ENABLE_EMSCRIPTEN_ENVIRONMENT_NODE OFF)
 
-CMAKE_DEPENDENT_OPTION(ENABLE_HLSL
-    "Enables HLSL input support"
-    ON "NOT ENABLE_GLSLANG_WEBMIN"
-    OFF)
+set(ENABLE_HLSL OFF)
 
-option(ENABLE_RTTI "Enables RTTI" OFF)
-option(ENABLE_OPT "Enables spirv-opt capability if present" ON)
-option(ENABLE_PCH "Enables Precompiled header" ON)
-option(ENABLE_CTEST "Enables testing" ON)
+set(ENABLE_RTTI OFF)
+set(ENABLE_OPT ON)
+set(ENABLE_PCH ON)
+set(ENABLE_CTEST OFF)
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT AND WIN32)
-    set(CMAKE_INSTALL_PREFIX "install" CACHE STRING "..." FORCE)
+    #set(CMAKE_INSTALL_PREFIX "install" CACHE STRING "..." FORCE)
 endif()
 
-option(USE_CCACHE "Use ccache" OFF)
+set(USE_CCACHE OFF)
 if(USE_CCACHE)
     find_program(CCACHE_FOUND ccache)
     if(CCACHE_FOUND)

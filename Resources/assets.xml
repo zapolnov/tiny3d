@@ -2,9 +2,9 @@
 
     <level id="level1" file="Levels/level1.txt" />
 
-    <shader id="defaultShader" file="Shaders/Default.metal" />
-    <shader id="skinningShader" file="Shaders/Skinning.metal" />
-    <shader id="levelShader" file="Shaders/Level.metal" />
+    <shader id="defaultShader" file="Shaders/Default" />
+    <shader id="skinningShader" file="Shaders/Skinning" />
+    <shader id="levelShader" file="Shaders/Level" />
 
     <texture id="dungeonTileset" file="Textures/dungeon.png" />
     <texture id="characterTexture" file="Meshes/AnimatedCharacters2/criminalMaleA.png" />

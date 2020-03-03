@@ -16,8 +16,11 @@ private:
     const ConfigFile& mConfig;
     std::stringstream mCxx;
     std::stringstream mHdr;
+    std::stringstream mCxxVulkan;
+    std::stringstream mHdrVulkan;
     std::stringstream mCxxMetal;
     std::stringstream mHdrMetal;
 
     bool compileMetalShader(const ConfigFile::Shader& shader);
+    bool compileVulkanShader(const ConfigFile::Shader& shader);
 };

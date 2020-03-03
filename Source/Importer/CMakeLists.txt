@@ -7,6 +7,7 @@ add(EXECUTABLE
         stb_image
         assimp
         engine
+        glslang
     SOURCES
         ConfigFile.cpp
         ConfigFile.h

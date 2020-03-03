@@ -13,6 +13,8 @@ set(gen
     Compiled/Shaders.h
     Compiled/Shaders_Metal.cpp
     Compiled/Shaders_Metal.h
+    Compiled/Shaders_Vulkan.cpp
+    Compiled/Shaders_Vulkan.h
     Compiled/Materials.cpp
     Compiled/Materials.h
     Compiled/Meshes.cpp
