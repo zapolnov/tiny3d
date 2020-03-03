@@ -46,10 +46,14 @@ bool initVulkan()
         !getVulkanAPI(hVulkanDll, "vkGetPhysicalDeviceProperties", vkGetPhysicalDeviceProperties) ||
         !getVulkanAPI(hVulkanDll, "vkGetPhysicalDeviceQueueFamilyProperties", vkGetPhysicalDeviceQueueFamilyProperties) ||
         !getVulkanAPI(hVulkanDll, "vkCreateDevice", vkCreateDevice) ||
+        !getVulkanAPI(hVulkanDll, "vkDestroyDevice", vkDestroyDevice) ||
         !getVulkanAPI(hVulkanDll, "vkGetDeviceQueue", vkGetDeviceQueue) ||
         !getVulkanAPI(hVulkanDll, "vkCreateCommandPool", vkCreateCommandPool) ||
+        !getVulkanAPI(hVulkanDll, "vkDestroyCommandPool", vkDestroyCommandPool) ||
         !getVulkanAPI(hVulkanDll, "vkAllocateCommandBuffers", vkAllocateCommandBuffers) ||
+        !getVulkanAPI(hVulkanDll, "vkFreeCommandBuffers", vkFreeCommandBuffers) ||
         !getVulkanAPI(hVulkanDll, "vkCreateFence", vkCreateFence) ||
+        !getVulkanAPI(hVulkanDll, "vkDestroyFence", vkDestroyFence) ||
         !getVulkanAPI(hVulkanDll, "vkCreateSemaphore", vkCreateSemaphore) ||
         !getVulkanAPI(hVulkanDll, "vkBeginCommandBuffer", vkBeginCommandBuffer) ||
         !getVulkanAPI(hVulkanDll, "vkEndCommandBuffer", vkEndCommandBuffer) ||
@@ -79,7 +83,14 @@ bool initVulkan()
         !getVulkanAPI(hVulkanDll, "vkCreateGraphicsPipelines", vkCreateGraphicsPipelines) ||
         !getVulkanAPI(hVulkanDll, "vkDestroyPipeline", vkDestroyPipeline) ||
         !getVulkanAPI(hVulkanDll, "vkCreatePipelineLayout", vkCreatePipelineLayout) ||
-        !getVulkanAPI(hVulkanDll, "vkDestroyPipelineLayout", vkDestroyPipelineLayout))
+        !getVulkanAPI(hVulkanDll, "vkDestroyPipelineLayout", vkDestroyPipelineLayout) ||
+        !getVulkanAPI(hVulkanDll, "vkCmdBeginRenderPass", vkCmdBeginRenderPass) ||
+        !getVulkanAPI(hVulkanDll, "vkCmdEndRenderPass", vkCmdEndRenderPass) ||
+        !getVulkanAPI(hVulkanDll, "vkCmdBindPipeline", vkCmdBindPipeline) ||
+        !getVulkanAPI(hVulkanDll, "vkCmdBindVertexBuffers", vkCmdBindVertexBuffers) ||
+        !getVulkanAPI(hVulkanDll, "vkCmdBindIndexBuffer", vkCmdBindIndexBuffer) ||
+        !getVulkanAPI(hVulkanDll, "vkCmdDraw", vkCmdDraw) ||
+        !getVulkanAPI(hVulkanDll, "vkCmdDrawIndexed", vkCmdDrawIndexed))
         return false;
 
     // Enumerate avaiable layers

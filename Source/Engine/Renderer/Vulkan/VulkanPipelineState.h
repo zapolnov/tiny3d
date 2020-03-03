@@ -10,6 +10,8 @@ public:
     VulkanPipelineState(VulkanRenderDevice* device, VkPipelineLayout layout, VkPipeline pipeline);
     ~VulkanPipelineState();
 
+    VkPipeline nativePipeline() const { return mPipeline; }
+
 private:
     VulkanRenderDevice* mDevice;
     VkPipelineLayout mLayout;

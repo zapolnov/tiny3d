@@ -3,6 +3,7 @@
 
 #version 450
 
+/*
 layout(binding=0) uniform VertexUniforms {
     mat4 modelMatrix;
     mat4 viewMatrix;
@@ -10,39 +11,23 @@ layout(binding=0) uniform VertexUniforms {
     mat3 normalMatrix;
     vec3 lightPosition;
 } vertexUniforms;
+*/
 
 layout(location=0) in vec3 in_position;
 layout(location=1) in vec3 in_normal;
-layout(location=2) in vec3 in_tangent;
-layout(location=3) in vec3 in_bitangent;
-layout(location=4) in vec2 in_texCoord;
+layout(location=2) in vec2 in_texCoord;
 
 layout(location=0) out vec3 out_normal;
 layout(location=1) out vec3 out_lightDirection;
-layout(location=2) out float out_lightDistance;
-layout(location=3) out vec2 out_texCoord;
+layout(location=2) out vec2 out_texCoord;
 
 void main()
 {
-    vec4 position = vertexUniforms.modelMatrix * vec4(in_position, 1.0);
+    vec4 position = /*vertexUniforms.modelMatrix */ vec4(in_position, 1.0);
 
-    vec3 tangent = normalize(vertexUniforms.normalMatrix * in_tangent);
-    vec3 bitangent = normalize(vertexUniforms.normalMatrix * in_bitangent);
-    vec3 normal = normalize(vertexUniforms.normalMatrix * in_normal);
-    mat3 tbn = mat3(
-            vec3(tangent.x, bitangent.x, normal.x),
-            vec3(tangent.y, bitangent.y, normal.y),
-            vec3(tangent.z, bitangent.z, normal.z)
-        );
-
-    vec3 lightDirection = vertexUniforms.lightPosition - vec3(position);
-    float lightDistance = length(lightDirection);
-    lightDirection /= lightDistance;
-
-    gl_Position = vertexUniforms.projectionMatrix * vertexUniforms.viewMatrix * position;
-    out_normal = tbn * normal;
-    out_lightDirection = tbn * lightDirection;
-    out_lightDistance = lightDistance;
+    gl_Position = /*vertexUniforms.projectionMatrix * vertexUniforms.viewMatrix */ position;
+    out_normal = /*uniforms.normalMatrix */ in_normal;
+    out_lightDirection = vec3(1,1,1);//uniforms.lightPosition - float3(position);
     out_texCoord = in_texCoord;
 }
 
@@ -51,14 +36,15 @@ void main()
 
 #version 450
 
+/*
 layout(binding=0) uniform FragmentUniforms {
     vec4 ambientColor;
 } fragmentUniforms;
+*/
 
 layout(location=0) in vec3 in_normal;
 layout(location=1) in vec3 in_lightDirection;
-layout(location=2) in float in_lightDistance;
-layout(location=3) in vec2 in_texCoord;
+layout(location=2) in vec2 in_texCoord;
 
 layout(location=0) out vec4 out_color;
 
@@ -83,5 +69,5 @@ void main()
     return max(intensity * color, uniforms.ambientColor);
     */
 
-    out_color = vec4(in_normal, 1.0);
+    out_color = vec4(in_texCoord, 0.0, 1.0);
 }

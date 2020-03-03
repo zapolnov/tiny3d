@@ -27,7 +27,7 @@ VulkanRenderBuffer::~VulkanRenderBuffer()
 
 unsigned VulkanRenderBuffer::uploadData(const void* data)
 {
-    /*
+    /* FIXME
     if (mSemaphore == nullptr)
         mSemaphore = dispatch_semaphore_create(MaxBuffersInFlight);
 
@@ -37,7 +37,7 @@ unsigned VulkanRenderBuffer::uploadData(const void* data)
     mBufferIndex = (mBufferIndex + 1) % MaxBuffersInFlight;
     unsigned bufferOffset = mSize * mBufferIndex;
 
-    /*
+    /* FIXME
     __block dispatch_semaphore_t semaphore = mSemaphore;
     [mDevice->nativeCommandBuffer() addCompletedHandler:^(id<MTLCommandBuffer>) {
             dispatch_semaphore_signal(semaphore);

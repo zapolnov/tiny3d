@@ -1,8 +1,11 @@
 #include "Win32.h"
+#include "Engine/Core/Engine.h"
 #include "Engine/Renderer/Vulkan/VulkanRenderDevice.h"
 #include "Engine/Renderer/Vulkan/VulkanCommon.h"
+#include "Game/Game.h"
 
 HWND hWnd;
+static std::unique_ptr<Engine> engine;
 
 static LRESULT CALLBACK MainWindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -35,6 +38,8 @@ static void MainLoop()
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         }
+
+        engine->doOneFrame();
     }
 }
 
@@ -88,7 +93,12 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         return 1;
     }
 
+    engine = std::make_unique<Engine>(renderDevice.get(), [](Engine* engine) { return new Game(engine); });
+
     MainLoop();
+
+    engine.reset();
+    renderDevice.reset();
 
     destroyVulkan();
     DestroyWindow(hWnd);

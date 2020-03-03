@@ -15,6 +15,18 @@
 
 VulkanRenderDevice::VulkanRenderDevice()
     : mInitialized(false)
+    , mDevice(nullptr)
+    , mSwapChain(nullptr)
+    , mPresentQueue(nullptr)
+    , mCommandPool(nullptr)
+    , mSetupCommandBuffer(nullptr)
+    , mDrawCommandBuffer(nullptr)
+    , mPresentCompleteSemaphore(nullptr)
+    , mRenderingCompleteSemaphore(nullptr)
+    , mSubmitFence(nullptr)
+    , mDepthImage(nullptr)
+    , mDepthImageView(nullptr)
+    , mRenderPass(nullptr)
 {
     VkPhysicalDevice physicalDevice;
     VkPhysicalDeviceProperties physicalDeviceProperties;
@@ -181,8 +193,7 @@ VulkanRenderDevice::VulkanRenderDevice()
     commandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     commandPoolCreateInfo.queueFamilyIndex = presentQueueIndex;
 
-    VkCommandPool commandPool;
-    result = vkCreateCommandPool(mDevice, &commandPoolCreateInfo, nullptr, &commandPool);
+    result = vkCreateCommandPool(mDevice, &commandPoolCreateInfo, nullptr, &mCommandPool);
     if (result != VK_SUCCESS) {
         vulkanError("Unable to create command pool.");
         return;
@@ -193,7 +204,7 @@ VulkanRenderDevice::VulkanRenderDevice()
     VkCommandBufferAllocateInfo commandBufferAllocationInfo;
     commandBufferAllocationInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     commandBufferAllocationInfo.pNext = nullptr;
-    commandBufferAllocationInfo.commandPool = commandPool;
+    commandBufferAllocationInfo.commandPool = mCommandPool;
     commandBufferAllocationInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     commandBufferAllocationInfo.commandBufferCount = 1;
 
@@ -221,8 +232,7 @@ VulkanRenderDevice::VulkanRenderDevice()
     fenceCreateInfo.pNext = nullptr;
     fenceCreateInfo.flags = 0;
 
-    VkFence submitFence;
-    vkCreateFence(mDevice, &fenceCreateInfo, nullptr, &submitFence);
+    vkCreateFence(mDevice, &fenceCreateInfo, nullptr, &mSubmitFence);
 
     std::vector<bool> processed(imageCount);
     for (uint32_t processedCount = 0; processedCount < imageCount; ) {
@@ -269,10 +279,10 @@ VulkanRenderDevice::VulkanRenderDevice()
             submitInfo.pCommandBuffers = &mSetupCommandBuffer;
             submitInfo.signalSemaphoreCount = 0;
             submitInfo.pSignalSemaphores = nullptr;
-            result = vkQueueSubmit(mPresentQueue, 1, &submitInfo, submitFence);
+            result = vkQueueSubmit(mPresentQueue, 1, &submitInfo, mSubmitFence);
 
-            vkWaitForFences(mDevice, 1, &submitFence, VK_TRUE, UINT64_MAX);
-            vkResetFences(mDevice, 1, &submitFence);
+            vkWaitForFences(mDevice, 1, &mSubmitFence, VK_TRUE, UINT64_MAX);
+            vkResetFences(mDevice, 1, &mSubmitFence);
             destroySemaphore(presentCompleteSemaphore);
             vkResetCommandBuffer(mSetupCommandBuffer, 0);
 
@@ -388,10 +398,10 @@ VulkanRenderDevice::VulkanRenderDevice()
     submitInfo.pCommandBuffers = &mSetupCommandBuffer;
     submitInfo.signalSemaphoreCount = 0;
     submitInfo.pSignalSemaphores = nullptr;
-    result = vkQueueSubmit(mPresentQueue, 1, &submitInfo, submitFence);
+    result = vkQueueSubmit(mPresentQueue, 1, &submitInfo, mSubmitFence);
 
-    vkWaitForFences(mDevice, 1, &submitFence, VK_TRUE, UINT64_MAX);
-    vkResetFences(mDevice, 1, &submitFence);
+    vkWaitForFences(mDevice, 1, &mSubmitFence, VK_TRUE, UINT64_MAX);
+    vkResetFences(mDevice, 1, &mSubmitFence);
     vkResetCommandBuffer(mSetupCommandBuffer, 0);
 
     VkImageViewCreateInfo imageViewCreateInfo;
@@ -485,26 +495,38 @@ VulkanRenderDevice::VulkanRenderDevice()
         }
     }
 
-    /*
-    const glm::mat4 identity4 = glm::mat4(1.0f);
-    const glm::mat3x4 identity3 = glm::mat3x4(1.0f);
-    memcpy(&mVertexUniforms.projectionMatrix, &identity4[0][0], 16 * sizeof(float));
-    memcpy(&mVertexUniforms.viewMatrix, &identity4[0][0], 16 * sizeof(float));
-    memcpy(&mVertexUniforms.modelMatrix, &identity4[0][0], 16 * sizeof(float));
-    memcpy(&mVertexUniforms.normalMatrix, &identity3[0][0], 12 * sizeof(float));
-    memset(&mVertexUniforms.lightPosition, 0, 3 * sizeof(float));
+    mVertexUniforms.projectionMatrix = glm::mat4(1.0f);
+    mVertexUniforms.viewMatrix = glm::mat4(1.0f);
+    mVertexUniforms.modelMatrix = glm::mat4(1.0f);
+    mVertexUniforms.normalMatrix = glm::mat3x4(1.0f);
+    mVertexUniforms.lightPosition = glm::vec4(0.0f);
 
-    const glm::vec4 ambient = glm::vec4(0.0f);
-    memcpy(&mFragmentUniforms.ambientColor, &ambient[0], 4 * sizeof(float));
-    */
+    mFragmentUniforms.ambientColor = glm::vec4(0.0f);
 
     mInitialized = true;
 }
 
 VulkanRenderDevice::~VulkanRenderDevice()
 {
+    if (mRenderPass)
+        vkDestroyRenderPass(mDevice, mRenderPass, nullptr);
     // FIXME
-    vkDestroyRenderPass(mDevice, mRenderPass, nullptr);
+    if (mSubmitFence)
+        vkDestroyFence(mDevice, mSubmitFence, nullptr);
+    if (mDrawCommandBuffer)
+        vkFreeCommandBuffers(mDevice, mCommandPool, 1, &mDrawCommandBuffer);
+    if (mSetupCommandBuffer)
+        vkFreeCommandBuffers(mDevice, mCommandPool, 1, &mSetupCommandBuffer);
+    if (mCommandPool)
+        vkDestroyCommandPool(mDevice, mCommandPool, nullptr);
+    if (mSwapChain)
+        vkDestroySwapchainKHR(mDevice, mSwapChain, nullptr);
+    if (mPresentCompleteSemaphore)
+        vkDestroySemaphore(mDevice, mPresentCompleteSemaphore, nullptr);
+    if (mRenderingCompleteSemaphore)
+        vkDestroySemaphore(mDevice, mRenderingCompleteSemaphore, nullptr);
+    if (mDevice)
+        vkDestroyDevice(mDevice, nullptr);
 }
 
 glm::vec2 VulkanRenderDevice::viewportSize() const
@@ -792,22 +814,18 @@ std::unique_ptr<IPipelineState> VulkanRenderDevice::createPipelineState(Primitiv
 
 void VulkanRenderDevice::setProjectionMatrix(const glm::mat4& matrix)
 {
-    //memcpy(&mVertexUniforms.projectionMatrix, &matrix[0][0], 16 * sizeof(float));
+    mVertexUniforms.projectionMatrix = matrix;
 }
 
 void VulkanRenderDevice::setViewMatrix(const glm::mat4& matrix)
 {
-    //memcpy(&mVertexUniforms.viewMatrix, &matrix[0][0], 16 * sizeof(float));
+    mVertexUniforms.viewMatrix = matrix;
 }
 
 void VulkanRenderDevice::setModelMatrix(const glm::mat4& matrix)
 {
-    /*
-    glm::mat3 normalMatrix = glm::mat3(matrix);
-    glm::mat3x4 transposedInvertedMatrix = glm::mat3x4(glm::transpose(glm::inverse(normalMatrix)));
-    memcpy(&mVertexUniforms.modelMatrix, &matrix[0][0], 16 * sizeof(float));
-    memcpy(&mVertexUniforms.normalMatrix, &transposedInvertedMatrix[0][0], 12 * sizeof(float));
-    */
+    mVertexUniforms.modelMatrix = matrix;
+    mVertexUniforms.normalMatrix = glm::mat3x4(glm::transpose(glm::inverse(glm::mat3(matrix))));
 }
 
 void VulkanRenderDevice::setTexture(int index, const std::unique_ptr<ITexture>& texture)
@@ -823,7 +841,7 @@ void VulkanRenderDevice::setPipelineState(const std::unique_ptr<IPipelineState>&
     assert(dynamic_cast<VulkanPipelineState*>(state.get()) != nullptr);
     auto vulkanState = static_cast<VulkanPipelineState*>(state.get());
 
-    //[mCommandEncoder setRenderPipelineState:vulkanState->nativeState()];
+    vkCmdBindPipeline(mDrawCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanState->nativePipeline());
 }
 
 void VulkanRenderDevice::setVertexBuffer(int index, const std::unique_ptr<IRenderBuffer>& buffer, unsigned offset)
@@ -831,35 +849,24 @@ void VulkanRenderDevice::setVertexBuffer(int index, const std::unique_ptr<IRende
     assert(dynamic_cast<VulkanRenderBuffer*>(buffer.get()) != nullptr);
     auto vulkanBuffer = static_cast<VulkanRenderBuffer*>(buffer.get());
 
-    //[mCommandEncoder setVertexBuffer:vulkanBuffer->nativeBuffer() offset:offset atIndex:index];
+    VkDeviceSize offsets = offset;
+    vkCmdBindVertexBuffers(mDrawCommandBuffer, index, 1, &vulkanBuffer->nativeBuffer(), &offsets);
 }
 
 void VulkanRenderDevice::setLightPosition(const glm::vec3& position)
 {
-    //memcpy(&mVertexUniforms.lightPosition, &position[0], 3 * sizeof(float));
+    mVertexUniforms.lightPosition = glm::vec4(position, 0.0f);
 }
 
 void VulkanRenderDevice::setAmbientColor(const glm::vec4& color)
 {
-    //memcpy(&mFragmentUniforms.ambientColor, &color[0], 4 * sizeof(float));
+    mFragmentUniforms.ambientColor = color;
 }
-
-/*
-static MTLPrimitiveType convertPrimitiveType(PrimitiveType type)
-{
-    switch (type) {
-        case Triangles: return MTLPrimitiveTypeTriangle;
-    }
-
-    assert(false);
-    return MTLPrimitiveTypeTriangle;
-}
-*/
 
 void VulkanRenderDevice::drawPrimitive(unsigned start, unsigned count)
 {
     bindUniforms();
-    //[mCommandEncoder drawPrimitives:convertPrimitiveType(type) vertexStart:start vertexCount:count];
+    vkCmdDraw(mDrawCommandBuffer, count, 1, start, 0);
 }
 
 void VulkanRenderDevice::drawIndexedPrimitive(const std::unique_ptr<IRenderBuffer>& indexBuffer, unsigned start, unsigned count)
@@ -867,54 +874,109 @@ void VulkanRenderDevice::drawIndexedPrimitive(const std::unique_ptr<IRenderBuffe
     assert(dynamic_cast<VulkanRenderBuffer*>(indexBuffer.get()) != nullptr);
     auto vulkanBuffer = static_cast<VulkanRenderBuffer*>(indexBuffer.get());
 
+    vkCmdBindIndexBuffer(mDrawCommandBuffer, vulkanBuffer->nativeBuffer(), 0, VK_INDEX_TYPE_UINT16);
+
     bindUniforms();
-    /*
-    [mCommandEncoder drawIndexedPrimitives:convertPrimitiveType(type) indexCount:count
-        indexType:MTLIndexTypeUInt16 indexBuffer:vulkanBuffer->nativeBuffer() indexBufferOffset:start
-        instanceCount:1 baseVertex:0 baseInstance:0];
-    */
+    vkCmdDrawIndexed(mDrawCommandBuffer, count, 1, start, 0, 0);
 }
 
 bool VulkanRenderDevice::beginFrame()
 {
-    /*
-    MTLRenderPassDescriptor* renderPassDescriptor = mView.currentRenderPassDescriptor;
-    if (!renderPassDescriptor)
-        return false;
+    VkSemaphoreCreateInfo semaphoreCreateInfo = { VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO, 0, 0 };
+    vkCreateSemaphore(mDevice, &semaphoreCreateInfo, nullptr, &mPresentCompleteSemaphore);
+    vkCreateSemaphore(mDevice, &semaphoreCreateInfo, nullptr, &mRenderingCompleteSemaphore);
 
-    mCommandBuffer = [mCommandQueue commandBuffer];
-    mCommandEncoder = [mCommandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
+    mNextImageIndex = 0;
+    vkAcquireNextImageKHR(mDevice, mSwapChain, UINT64_MAX, mPresentCompleteSemaphore, VK_NULL_HANDLE, &mNextImageIndex);
 
-    [mCommandEncoder setDepthStencilState:mDepthStencilState];
-    */
+    VkCommandBufferBeginInfo beginInfo = {};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    vkBeginCommandBuffer(mDrawCommandBuffer, &beginInfo);
+
+    VkImageMemoryBarrier layoutTransitionBarrier = {};
+    layoutTransitionBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    layoutTransitionBarrier.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+    layoutTransitionBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    layoutTransitionBarrier.oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    layoutTransitionBarrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    layoutTransitionBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    layoutTransitionBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    layoutTransitionBarrier.image = mPresentImages[mNextImageIndex];
+    layoutTransitionBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+
+    vkCmdPipelineBarrier(mDrawCommandBuffer,
+        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+        0, 0, nullptr, 0, nullptr, 1, &layoutTransitionBarrier);
+
+    VkClearValue clearValue[] = { { 0.0f, 0.0f, 0.0f, 1.0f }, { 1.0, 0.0 } };
+    VkRenderPassBeginInfo renderPassBeginInfo = {};
+    renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassBeginInfo.renderPass = mRenderPass;
+    renderPassBeginInfo.framebuffer = mFramebuffers[mNextImageIndex];
+    renderPassBeginInfo.renderArea = { 0, 0, uint32_t(mSurfaceWidth), uint32_t(mSurfaceHeight) };
+    renderPassBeginInfo.clearValueCount = 2;
+    renderPassBeginInfo.pClearValues = clearValue;
+    vkCmdBeginRenderPass(mDrawCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
     return true;
 }
 
 void VulkanRenderDevice::endFrame()
 {
-    uint32_t nextImageIndex;
-    vkAcquireNextImageKHR(mDevice, mSwapChain, UINT64_MAX, VK_NULL_HANDLE, VK_NULL_HANDLE, &nextImageIndex);
+    vkCmdEndRenderPass(mDrawCommandBuffer);
 
-    VkPresentInfoKHR presentInfo;
+    VkImageMemoryBarrier prePresentBarrier = {};
+    prePresentBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    prePresentBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    prePresentBarrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+    prePresentBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    prePresentBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    prePresentBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    prePresentBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    prePresentBarrier.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
+    prePresentBarrier.image = mPresentImages[mNextImageIndex];
+
+    vkCmdPipelineBarrier(mDrawCommandBuffer,
+        VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+        0, 0, nullptr, 0, nullptr, 1, &prePresentBarrier);
+
+    vkEndCommandBuffer(mDrawCommandBuffer);
+
+    VkFence renderFence;
+    VkFenceCreateInfo fenceCreateInfo = {};
+    fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    vkCreateFence(mDevice, &fenceCreateInfo, nullptr, &renderFence );
+
+    VkSubmitInfo submitInfo = {};
+    VkPipelineStageFlags waitStageMask = { VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT };
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.waitSemaphoreCount = 1;
+    submitInfo.pWaitSemaphores = &mPresentCompleteSemaphore;
+    submitInfo.pWaitDstStageMask = &waitStageMask;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &mDrawCommandBuffer;
+    submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pSignalSemaphores = &mRenderingCompleteSemaphore;
+    vkQueueSubmit(mPresentQueue, 1, &submitInfo, renderFence);
+
+    vkWaitForFences(mDevice, 1, &renderFence, VK_TRUE, UINT64_MAX);
+    vkDestroyFence(mDevice, renderFence, nullptr);
+
+    VkPresentInfoKHR presentInfo = {};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    presentInfo.pNext = nullptr;
-    presentInfo.waitSemaphoreCount = 0;
-    presentInfo.pWaitSemaphores = nullptr;
+    presentInfo.waitSemaphoreCount = 1;
+    presentInfo.pWaitSemaphores = &mRenderingCompleteSemaphore;
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = &mSwapChain;
-    presentInfo.pImageIndices = &nextImageIndex;
+    presentInfo.pImageIndices = &mNextImageIndex;
     presentInfo.pResults = nullptr;
     vkQueuePresentKHR(mPresentQueue, &presentInfo);
 
-    /*
-    [mCommandEncoder endEncoding];
-    [mCommandBuffer presentDrawable:mView.currentDrawable];
-    [mCommandBuffer commit];
-
-    mCommandBuffer = nil;
-    mCommandEncoder = nil;
-    */
+    vkDestroySemaphore(mDevice, mPresentCompleteSemaphore, nullptr);
+    vkDestroySemaphore(mDevice, mRenderingCompleteSemaphore, nullptr);
+    mPresentCompleteSemaphore = nullptr;
+    mRenderingCompleteSemaphore = nullptr;
 }
 
 void VulkanRenderDevice::bindUniforms()

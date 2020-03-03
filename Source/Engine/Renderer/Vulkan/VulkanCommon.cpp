@@ -14,10 +14,14 @@ PFN_vkEnumeratePhysicalDevices vkEnumeratePhysicalDevices;
 PFN_vkGetPhysicalDeviceProperties vkGetPhysicalDeviceProperties;
 PFN_vkGetPhysicalDeviceQueueFamilyProperties vkGetPhysicalDeviceQueueFamilyProperties;
 PFN_vkCreateDevice vkCreateDevice;
+PFN_vkDestroyDevice vkDestroyDevice;
 PFN_vkGetDeviceQueue vkGetDeviceQueue;
 PFN_vkCreateCommandPool vkCreateCommandPool;
+PFN_vkDestroyCommandPool vkDestroyCommandPool;
 PFN_vkAllocateCommandBuffers vkAllocateCommandBuffers;
+PFN_vkFreeCommandBuffers vkFreeCommandBuffers;
 PFN_vkCreateFence vkCreateFence;
+PFN_vkDestroyFence vkDestroyFence;
 PFN_vkCreateSemaphore vkCreateSemaphore;
 PFN_vkBeginCommandBuffer vkBeginCommandBuffer;
 PFN_vkEndCommandBuffer vkEndCommandBuffer;
@@ -48,12 +52,20 @@ PFN_vkCreateGraphicsPipelines vkCreateGraphicsPipelines;
 PFN_vkDestroyPipeline vkDestroyPipeline;
 PFN_vkCreatePipelineLayout vkCreatePipelineLayout;
 PFN_vkDestroyPipelineLayout vkDestroyPipelineLayout;
+PFN_vkCmdBeginRenderPass vkCmdBeginRenderPass;
+PFN_vkCmdEndRenderPass vkCmdEndRenderPass;
+PFN_vkCmdBindPipeline vkCmdBindPipeline;
+PFN_vkCmdBindVertexBuffers vkCmdBindVertexBuffers;
+PFN_vkCmdBindIndexBuffer vkCmdBindIndexBuffer;
+PFN_vkCmdDraw vkCmdDraw;
+PFN_vkCmdDrawIndexed vkCmdDrawIndexed;
 
 PFN_vkGetPhysicalDeviceSurfaceSupportKHR vkGetPhysicalDeviceSurfaceSupportKHR;
 PFN_vkGetPhysicalDeviceSurfaceFormatsKHR vkGetPhysicalDeviceSurfaceFormatsKHR;
 PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR vkGetPhysicalDeviceSurfaceCapabilitiesKHR;
 PFN_vkGetPhysicalDeviceSurfacePresentModesKHR vkGetPhysicalDeviceSurfacePresentModesKHR;
 PFN_vkCreateSwapchainKHR vkCreateSwapchainKHR;
+PFN_vkDestroySwapchainKHR vkDestroySwapchainKHR;
 PFN_vkGetSwapchainImagesKHR vkGetSwapchainImagesKHR;
 PFN_vkAcquireNextImageKHR vkAcquireNextImageKHR;
 PFN_vkQueuePresentKHR vkQueuePresentKHR;
@@ -140,6 +152,7 @@ bool vulkanCreateInstance(const std::vector<const char*>& enabledExtensions)
         !getVulkanProc("vkGetPhysicalDeviceSurfaceCapabilitiesKHR", vkGetPhysicalDeviceSurfaceCapabilitiesKHR) ||
         !getVulkanProc("vkGetPhysicalDeviceSurfacePresentModesKHR", vkGetPhysicalDeviceSurfacePresentModesKHR) ||
         !getVulkanProc("vkCreateSwapchainKHR", vkCreateSwapchainKHR) ||
+        !getVulkanProc("vkDestroySwapchainKHR", vkDestroySwapchainKHR) ||
         !getVulkanProc("vkGetSwapchainImagesKHR", vkGetSwapchainImagesKHR) ||
         !getVulkanProc("vkAcquireNextImageKHR", vkAcquireNextImageKHR) ||
         !getVulkanProc("vkQueuePresentKHR", vkQueuePresentKHR))

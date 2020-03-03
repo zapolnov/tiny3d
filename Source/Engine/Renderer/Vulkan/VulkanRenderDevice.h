@@ -2,6 +2,9 @@
 #include "Engine/Renderer/IRenderDevice.h"
 #include "Engine/Renderer/Vulkan/VulkanCommon.h"
 #include <memory>
+#include <glm/mat3x4.hpp>
+#include <glm/mat4x4.hpp>
+#include <glm/vec4.hpp>
 
 class VulkanRenderDevice : public IRenderDevice
 {
@@ -46,31 +49,41 @@ public:
     void endFrame() override;
 
 private:
+    struct VertexUniforms
+    {
+        glm::mat4 modelMatrix;
+        glm::mat4 viewMatrix;
+        glm::mat4 projectionMatrix;
+        glm::mat3x4 normalMatrix;
+        glm::vec4 lightPosition;
+    };
+
+    struct FragmentUniforms
+    {
+        glm::vec4 ambientColor;
+    };
+
     bool mInitialized;
     VkDevice mDevice;
     VkSwapchainKHR mSwapChain;
     VkQueue mPresentQueue;
+    VkCommandPool mCommandPool;
     VkCommandBuffer mSetupCommandBuffer;
     VkCommandBuffer mDrawCommandBuffer;
+    VkSemaphore mPresentCompleteSemaphore;
+    VkSemaphore mRenderingCompleteSemaphore;
+    VkFence mSubmitFence;
     VkImage mDepthImage;
     VkImageView mDepthImageView;
     VkRenderPass mRenderPass;
     VkPhysicalDeviceMemoryProperties mMemoryProperties;
-    std::unique_ptr<VkImage[]> mPresentImages;
-    std::unique_ptr<VkFramebuffer[]> mFramebuffers;
-    int mSurfaceWidth;
-    int mSurfaceHeight;
-    /*
-    MTKView* mView;
-    id<MTLDevice> mDevice;
-    id<MTLCommandQueue> mCommandQueue;
-    id<MTLCommandBuffer> mCommandBuffer;
-    id<MTLDepthStencilState> mDepthStencilState;
-    id<MTLRenderCommandEncoder> mCommandEncoder;
     VertexUniforms mVertexUniforms;
     FragmentUniforms mFragmentUniforms;
-    MTLViewport mViewport;
-    */
+    std::unique_ptr<VkImage[]> mPresentImages;
+    std::unique_ptr<VkFramebuffer[]> mFramebuffers;
+    uint32_t mNextImageIndex;
+    int mSurfaceWidth;
+    int mSurfaceHeight;
 
     void bindUniforms();
 };
