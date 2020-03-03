@@ -17,9 +17,12 @@ public:
 
 private:
     VulkanRenderDevice* mDevice;
-    VkBuffer mHandle;
+    VkBuffer mBuffer;
+    VkDeviceMemory mDeviceMemory;
     //dispatch_semaphore_t mSemaphore;
     size_t mSize;
-    size_t mAlignedSize;
     unsigned mBufferIndex;
+
+    void create(size_t size);
+    void copyData(const void* data, unsigned offset, size_t size);
 };

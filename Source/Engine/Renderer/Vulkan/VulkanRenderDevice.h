@@ -18,6 +18,9 @@ public:
     uint32_t findDeviceMemory(const VkMemoryRequirements& memory, VkMemoryPropertyFlags desiredFlags) const;
     VkDeviceMemory allocDeviceMemory(const VkMemoryRequirements& memory, VkMemoryPropertyFlags desiredFlags);
 
+    VkSemaphore createSemaphore();
+    void destroySemaphore(VkSemaphore semaphore);
+
     std::unique_ptr<IRenderBuffer> createBuffer(size_t size) override;
     std::unique_ptr<IRenderBuffer> createBufferWithData(const void* data, size_t size) override;
     std::unique_ptr<ITexture> createTexture(const TextureData* data) override;

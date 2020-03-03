@@ -38,6 +38,9 @@ PFN_vkCreateFramebuffer vkCreateFramebuffer;
 PFN_vkCreateBuffer vkCreateBuffer;
 PFN_vkDestroyBuffer vkDestroyBuffer;
 PFN_vkGetBufferMemoryRequirements vkGetBufferMemoryRequirements;
+PFN_vkMapMemory vkMapMemory;
+PFN_vkUnmapMemory vkUnmapMemory;
+PFN_vkBindBufferMemory vkBindBufferMemory;
 
 PFN_vkGetPhysicalDeviceSurfaceSupportKHR vkGetPhysicalDeviceSurfaceSupportKHR;
 PFN_vkGetPhysicalDeviceSurfaceFormatsKHR vkGetPhysicalDeviceSurfaceFormatsKHR;

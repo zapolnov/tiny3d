@@ -226,14 +226,14 @@ VulkanRenderDevice::VulkanRenderDevice()
 
     std::vector<bool> processed(imageCount);
     for (uint32_t processedCount = 0; processedCount < imageCount; ) {
-        VkSemaphore presentCompleteSemaphore;
-        VkSemaphoreCreateInfo semaphoreCreateInfo = { VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO, 0, 0 };
-        vkCreateSemaphore(mDevice, &semaphoreCreateInfo, nullptr, &presentCompleteSemaphore);
+        VkSemaphore presentCompleteSemaphore = createSemaphore();
 
         uint32_t nextImageIndex = 0;
         vkAcquireNextImageKHR(mDevice, mSwapChain, UINT64_MAX, presentCompleteSemaphore, VK_NULL_HANDLE, &nextImageIndex);
 
-        if (!processed[nextImageIndex]) {
+        if (processed[nextImageIndex])
+            destroySemaphore(presentCompleteSemaphore);
+        else {
             VkCommandBufferBeginInfo beginInfo;
             beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
             beginInfo.pNext = nullptr;
@@ -273,7 +273,7 @@ VulkanRenderDevice::VulkanRenderDevice()
 
             vkWaitForFences(mDevice, 1, &submitFence, VK_TRUE, UINT64_MAX);
             vkResetFences(mDevice, 1, &submitFence);
-            vkDestroySemaphore(mDevice, presentCompleteSemaphore, nullptr);
+            destroySemaphore(presentCompleteSemaphore);
             vkResetCommandBuffer(mSetupCommandBuffer, 0);
 
             processed[nextImageIndex] = true;
@@ -536,11 +536,30 @@ VkDeviceMemory VulkanRenderDevice::allocDeviceMemory(const VkMemoryRequirements&
     allocInfo.allocationSize = memory.size;
     allocInfo.memoryTypeIndex = findDeviceMemory(memory, desiredFlags);
 
-    VkDeviceMemory allocatedMemory;
+    VkDeviceMemory allocatedMemory = nullptr;
     VkResult result = vkAllocateMemory(mDevice, &allocInfo, nullptr, &allocatedMemory);
     assert(result == VK_SUCCESS);   // FIXME: better error handling
 
     return allocatedMemory;
+}
+
+VkSemaphore VulkanRenderDevice::createSemaphore()
+{
+    VkSemaphoreCreateInfo info;
+    info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+    info.pNext = nullptr;
+    info.flags = 0;
+
+    VkSemaphore semaphore = nullptr;
+    VkResult result = vkCreateSemaphore(mDevice, &info, nullptr, &semaphore);
+    assert(result == VK_SUCCESS);   // FIXME: better error handling
+
+    return semaphore;
+}
+
+void VulkanRenderDevice::destroySemaphore(VkSemaphore semaphore)
+{
+    vkDestroySemaphore(mDevice, semaphore, nullptr);
 }
 
 std::unique_ptr<IRenderBuffer> VulkanRenderDevice::createBuffer(size_t size)
