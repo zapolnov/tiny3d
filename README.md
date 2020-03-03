@@ -2,8 +2,8 @@
 Tiny 3D engine
 ==============
 
-This is a very small but functional 3D engine. Currently this 3D engine can be run on MacOS using Metal API,
-but support for Win32 and Vulkan is under development.
+This is a very small but functional 3D engine. Currently this 3D engine can be run on MacOS using Metal API
+and on Win32 using Vulkan API.
 
 Engine supports rendering of static and animated meshes with custom textures and shaders. Demo game is
 included in the project.
