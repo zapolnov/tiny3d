@@ -1,24 +1,20 @@
 #pragma once
 #include "Engine/Renderer/IShaderProgram.h"
+#include "Engine/Renderer/Vulkan/VulkanCommon.h"
 
 class VulkanRenderDevice;
 
 class VulkanShaderProgram : public IShaderProgram
 {
 public:
-    VulkanShaderProgram(VulkanRenderDevice* device/*, id<MTLLibrary> library*/);
+    VulkanShaderProgram(VulkanRenderDevice* device, VkShaderModule vertex, VkShaderModule fragment);
     ~VulkanShaderProgram();
 
-    /*
-    id<MTLFunction> vertexFunction() const { return mVertexFunction; }
-    id<MTLFunction> fragmentFunction() const { return mFragmentFunction; }
-    */
+    VkShaderModule vertex() const { return mVertex; }
+    VkShaderModule fragment() const { return mFragment; }
 
 private:
     VulkanRenderDevice* mDevice;
-    /*
-    id<MTLLibrary> mLibrary;
-    id<MTLFunction> mVertexFunction;
-    id<MTLFunction> mFragmentFunction;
-    */
+    VkShaderModule mVertex;
+    VkShaderModule mFragment;
 };

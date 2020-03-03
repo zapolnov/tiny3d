@@ -1,17 +1,17 @@
 #pragma once
 #include "Engine/Renderer/IPipelineState.h"
+#include "Engine/Renderer/Vulkan/VulkanCommon.h"
 
 class VulkanRenderDevice;
 
 class VulkanPipelineState : public IPipelineState
 {
 public:
-    VulkanPipelineState(VulkanRenderDevice* device);//, id<MTLRenderPipelineState> state);
+    VulkanPipelineState(VulkanRenderDevice* device, VkPipelineLayout layout, VkPipeline pipeline);
     ~VulkanPipelineState();
-
-    //id<MTLRenderPipelineState> nativeState() const { return mState; }
 
 private:
     VulkanRenderDevice* mDevice;
-    //id<MTLRenderPipelineState> mState;
+    VkPipelineLayout mLayout;
+    VkPipeline mPipeline;
 };

@@ -13,6 +13,7 @@
 
 MetalRenderDevice::MetalRenderDevice(MTKView* view)
     : mView(view)
+    , mPrimitiveType(MTLPrimitiveTypeTriangle)
     , mViewport{0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f}
 {
     mDevice = view.device;
@@ -82,7 +83,8 @@ std::unique_ptr<IShaderProgram> MetalRenderDevice::createShaderProgram(const Sha
     return std::make_unique<MetalShaderProgram>(this, library);
 }
 
-std::unique_ptr<IPipelineState> MetalRenderDevice::createPipelineState(const std::unique_ptr<IShaderProgram>& shader, const VertexFormat& vertexFormat)
+std::unique_ptr<IPipelineState> MetalRenderDevice::createPipelineState(PrimitiveType primitiveType,
+    const std::unique_ptr<IShaderProgram>& shader, const VertexFormat& vertexFormat)
 {
     assert(dynamic_cast<MetalShaderProgram*>(shader.get()) != nullptr);
     auto metalShader = static_cast<MetalShaderProgram*>(shader.get());
@@ -116,7 +118,7 @@ std::unique_ptr<IPipelineState> MetalRenderDevice::createPipelineState(const std
     if (error != nil)
         NSLog(@"Unable to create pipeline state: %@", error);
 
-    return std::make_unique<MetalPipelineState>(this, state);
+    return std::make_unique<MetalPipelineState>(this, primitiveType, state);
 }
 
 void MetalRenderDevice::setProjectionMatrix(const glm::mat4& matrix)
@@ -145,11 +147,22 @@ void MetalRenderDevice::setTexture(int index, const std::unique_ptr<ITexture>& t
     [mCommandEncoder setFragmentTexture:metalTexture->nativeTexture() atIndex:index];
 }
 
+static MTLPrimitiveType convertPrimitiveType(PrimitiveType type)
+{
+    switch (type) {
+        case Triangles: return MTLPrimitiveTypeTriangle;
+    }
+
+    assert(false);
+    return MTLPrimitiveTypeTriangle;
+}
+
 void MetalRenderDevice::setPipelineState(const std::unique_ptr<IPipelineState>& state)
 {
     assert(dynamic_cast<MetalPipelineState*>(state.get()) != nullptr);
     auto metalState = static_cast<MetalPipelineState*>(state.get());
 
+    mPrimitiveType = convertPrimitiveType(metalState->primitiveType());
     [mCommandEncoder setRenderPipelineState:metalState->nativeState()];
 }
 
@@ -171,29 +184,19 @@ void MetalRenderDevice::setAmbientColor(const glm::vec4& color)
     memcpy(&mFragmentUniforms.ambientColor, &color[0], 4 * sizeof(float));
 }
 
-static MTLPrimitiveType convertPrimitiveType(PrimitiveType type)
-{
-    switch (type) {
-        case Triangles: return MTLPrimitiveTypeTriangle;
-    }
-
-    assert(false);
-    return MTLPrimitiveTypeTriangle;
-}
-
-void MetalRenderDevice::drawPrimitive(PrimitiveType type, unsigned start, unsigned count)
+void MetalRenderDevice::drawPrimitive(unsigned start, unsigned count)
 {
     bindUniforms();
-    [mCommandEncoder drawPrimitives:convertPrimitiveType(type) vertexStart:start vertexCount:count];
+    [mCommandEncoder drawPrimitives:mPrimitiveType vertexStart:start vertexCount:count];
 }
 
-void MetalRenderDevice::drawIndexedPrimitive(PrimitiveType type, const std::unique_ptr<IRenderBuffer>& indexBuffer, unsigned start, unsigned count)
+void MetalRenderDevice::drawIndexedPrimitive(const std::unique_ptr<IRenderBuffer>& indexBuffer, unsigned start, unsigned count)
 {
     assert(dynamic_cast<MetalRenderBuffer*>(indexBuffer.get()) != nullptr);
     auto metalBuffer = static_cast<MetalRenderBuffer*>(indexBuffer.get());
 
     bindUniforms();
-    [mCommandEncoder drawIndexedPrimitives:convertPrimitiveType(type) indexCount:count
+    [mCommandEncoder drawIndexedPrimitives:mPrimitiveType indexCount:count
         indexType:MTLIndexTypeUInt16 indexBuffer:metalBuffer->nativeBuffer() indexBufferOffset:start
         instanceCount:1 baseVertex:0 baseInstance:0];
 }

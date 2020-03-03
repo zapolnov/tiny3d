@@ -66,13 +66,20 @@ bool initVulkan()
         !getVulkanAPI(hVulkanDll, "vkAllocateMemory", vkAllocateMemory) ||
         !getVulkanAPI(hVulkanDll, "vkBindImageMemory", vkBindImageMemory) ||
         !getVulkanAPI(hVulkanDll, "vkCreateRenderPass", vkCreateRenderPass) ||
+        !getVulkanAPI(hVulkanDll, "vkDestroyRenderPass", vkDestroyRenderPass) ||
         !getVulkanAPI(hVulkanDll, "vkCreateFramebuffer", vkCreateFramebuffer) ||
         !getVulkanAPI(hVulkanDll, "vkCreateBuffer", vkCreateBuffer) ||
         !getVulkanAPI(hVulkanDll, "vkDestroyBuffer", vkDestroyBuffer) ||
         !getVulkanAPI(hVulkanDll, "vkGetBufferMemoryRequirements", vkGetBufferMemoryRequirements) ||
         !getVulkanAPI(hVulkanDll, "vkMapMemory", vkMapMemory) ||
         !getVulkanAPI(hVulkanDll, "vkUnmapMemory", vkUnmapMemory) ||
-        !getVulkanAPI(hVulkanDll, "vkBindBufferMemory", vkBindBufferMemory))
+        !getVulkanAPI(hVulkanDll, "vkBindBufferMemory", vkBindBufferMemory) ||
+        !getVulkanAPI(hVulkanDll, "vkCreateShaderModule", vkCreateShaderModule) ||
+        !getVulkanAPI(hVulkanDll, "vkDestroyShaderModule", vkDestroyShaderModule) ||
+        !getVulkanAPI(hVulkanDll, "vkCreateGraphicsPipelines", vkCreateGraphicsPipelines) ||
+        !getVulkanAPI(hVulkanDll, "vkDestroyPipeline", vkDestroyPipeline) ||
+        !getVulkanAPI(hVulkanDll, "vkCreatePipelineLayout", vkCreatePipelineLayout) ||
+        !getVulkanAPI(hVulkanDll, "vkDestroyPipelineLayout", vkDestroyPipelineLayout))
         return false;
 
     // Enumerate avaiable layers

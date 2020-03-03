@@ -2,21 +2,15 @@
 #include "VulkanShaderProgram.h"
 #include "VulkanRenderDevice.h"
 
-VulkanShaderProgram::VulkanShaderProgram(VulkanRenderDevice* device/*, id<MTLLibrary> library*/)
+VulkanShaderProgram::VulkanShaderProgram(VulkanRenderDevice* device, VkShaderModule vertex, VkShaderModule fragment)
     : mDevice(device)
-    //, mLibrary(library)
+    , mVertex(vertex)
+    , mFragment(fragment)
 {
-    /*
-    mVertexFunction = [mLibrary newFunctionWithName:@"vertexShader"];
-    if (!mVertexFunction)
-        NSLog(@"Vertex function was not found in shader library.");
-
-    mFragmentFunction = [mLibrary newFunctionWithName:@"fragmentShader"];
-    if (!mFragmentFunction)
-        NSLog(@"Fragment function was not found in shader library.");
-    */
 }
 
 VulkanShaderProgram::~VulkanShaderProgram()
 {
+    vkDestroyShaderModule(mDevice->nativeDevice(), mVertex, nullptr);
+    vkDestroyShaderModule(mDevice->nativeDevice(), mFragment, nullptr);
 }

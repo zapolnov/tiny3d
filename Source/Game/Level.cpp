@@ -48,7 +48,7 @@ void Level::render() const
 
     mMaterial->bind();
     mEngine->renderDevice()->setVertexBuffer(0, mVertexBuffer);
-    mEngine->renderDevice()->drawIndexedPrimitive(Triangles, mIndexBuffer, 0, mIndexCount);
+    mEngine->renderDevice()->drawIndexedPrimitive(mIndexBuffer, 0, mIndexCount);
 
     for (const auto& obj : mStaticObjects) {
         mEngine->renderDevice()->setModelMatrix(obj.matrix);

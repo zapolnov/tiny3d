@@ -7,12 +7,14 @@ class MetalRenderDevice;
 class MetalPipelineState : public IPipelineState
 {
 public:
-    MetalPipelineState(MetalRenderDevice* device, id<MTLRenderPipelineState> state);
+    MetalPipelineState(MetalRenderDevice* device, PrimitiveType primitiveType, id<MTLRenderPipelineState> state);
     ~MetalPipelineState();
 
     id<MTLRenderPipelineState> nativeState() const { return mState; }
+    PrimitiveType primitiveType() const { return mPrimitiveType; }
 
 private:
     MetalRenderDevice* mDevice;
     id<MTLRenderPipelineState> mState;
+    PrimitiveType mPrimitiveType;
 };
